@@ -1,0 +1,30 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import { whatsOnItems } from "../../../data/site";
+---
+
+<BaseLayout
+  title="What's On"
+  description="What's on across the Stadium Experience network, including industry meetings, awards and campaigns."
+>
+  <section class="page-hero">
+    <p class="eyebrow">About Us</p>
+    <h1>What's On</h1>
+    <p class="lede">
+      Keep up with Stadium Experience activity across member events, awards announcements and
+      network campaigns.
+    </p>
+  </section>
+
+  <section class="section section-tight">
+    <div class="stack">
+      {whatsOnItems.map((item) => (
+        <article class="card list-card">
+          <p class="eyebrow">{item.date}</p>
+          <h2>{item.title}</h2>
+          <p>{item.summary}</p>
+        </article>
+      ))}
+    </div>
+  </section>
+</BaseLayout>

@@ -1,0 +1,144 @@
+<section class="section section-tight">
+  <div class="section-heading">
+    <p class="eyebrow">Browse by club</p>
+    <h2>Select a club crest below to explore your chosen venue.</h2>
+    <p class="lede">
+      A quick alphabetical view for planners who already know the club or stadium they want to
+      review.
+    </p>
+  </div>
+
+  <div class="club-directory" data-club-directory>
+    <div class="club-directory-state" data-state="loading">
+      <div class="directory-message-card">
+        <p class="eyebrow">Loading clubs</p>
+        <h3>Fetching the club directory.</h3>
+        <p>Please wait while we load the latest club listing.</p>
+      </div>
+    </div>
+
+    <div class="club-directory-state" data-state="error" hidden>
+      <div class="directory-message-card">
+        <p class="eyebrow">Directory unavailable</p>
+        <h3>We could not load the club directory right now.</h3>
+        <p>Please try again shortly or browse the featured venues above.</p>
+      </div>
+    </div>
+
+    <div class="club-directory-state" data-state="empty" hidden>
+      <div class="directory-message-card">
+        <p class="eyebrow">No clubs available</p>
+        <h3>The club directory is currently empty.</h3>
+        <p>Please check back later or browse venues using the search and filters above.</p>
+      </div>
+    </div>
+
+    <div class="crest-grid" data-state="ready" hidden></div>
+  </div>
+</section>
+
+<script>
+  const slugifyClubName = (name) =>
+    name
+      .toLowerCase()
+      .replace(/&/g, "and")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+
+  const getCrestLetters = (name) =>
+    name
+      .split(/[\s&(]+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase() ?? "")
+      .join("");
+
+  const createClubCard = (club) => {
+    const card = document.createElement("a");
+    card.className = "crest-card crest-card-live";
+    card.href = `/clubs/${slugifyClubName(club.name)}/`;
+
+    const badge = document.createElement("div");
+    badge.className = "crest-badge crest-badge-plain";
+    badge.setAttribute("aria-hidden", "true");
+
+    const badgeText = document.createElement("span");
+    badgeText.textContent = getCrestLetters(club.name);
+    badge.appendChild(badgeText);
+
+    if (club.crestUrl) {
+      const image = document.createElement("img");
+      image.src = club.crestUrl;
+      image.alt = "";
+      image.loading = "lazy";
+      image.className = "crest-image";
+
+      image.addEventListener("load", () => {
+        badge.classList.add("has-image");
+      });
+
+      image.addEventListener("error", () => {
+        image.remove();
+        badge.classList.remove("has-image");
+      });
+
+      badge.appendChild(image);
+    }
+
+    const copy = document.createElement("div");
+    copy.className = "crest-copy crest-copy-centered";
+
+    const heading = document.createElement("h3");
+    heading.textContent = club.name;
+
+    copy.appendChild(heading);
+    card.append(badge, copy);
+
+    return card;
+  };
+
+  const setState = (root, nextState) => {
+    root.querySelectorAll("[data-state]").forEach((element) => {
+      element.hidden = element.getAttribute("data-state") !== nextState;
+    });
+  };
+
+  document.querySelectorAll("[data-club-directory]").forEach(async (root) => {
+    const grid = root.querySelector(".crest-grid");
+
+    setState(root, "loading");
+
+    try {
+      const response = await fetch("/api/club-directory", {
+        headers: {
+          accept: "application/json"
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error("Unable to load club directory");
+      }
+
+      const data = await response.json();
+      const clubs = Array.isArray(data.clubs)
+        ? data.clubs.map((club) => ({
+            name: typeof club?.name === "string" ? club.name : "",
+            crestUrl: typeof club?.crest_url === "string" ? club.crest_url : null
+          }))
+        : [];
+
+      if (!clubs.length || !grid) {
+        setState(root, "empty");
+        return;
+      }
+
+      const fragment = document.createDocumentFragment();
+      clubs.forEach((club) => fragment.appendChild(createClubCard(club)));
+      grid.replaceChildren(fragment);
+      setState(root, "ready");
+    } catch (error) {
+      console.error("Unable to load club directory", error);
+      setState(root, "error");
+    }
+  });
+</script>

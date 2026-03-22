@@ -1,0 +1,153 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+
+const hasSupabaseAuth =
+  Boolean(import.meta.env.PUBLIC_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL) &&
+  Boolean(import.meta.env.PUBLIC_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY);
+---
+
+<BaseLayout title="Admin Login" description="Admin login for Stadium Experience content management." chrome="admin">
+  <section class="page-hero page-hero-tight">
+    <p class="eyebrow">Admin</p>
+    <h1>Sign in to manage the site.</h1>
+    <p class="lede">
+      Use a Supabase Auth account to access the admin area for simple content editing and future
+      publishing workflows.
+    </p>
+  </section>
+
+  <section class="section section-tight">
+    <div class="admin-auth-shell">
+      <article class="card admin-auth-card">
+        <p class="eyebrow">Login</p>
+        <h2>Access the admin area</h2>
+        {hasSupabaseAuth ? (
+          <>
+            <form class="admin-auth-form" data-admin-login-form>
+              <label>
+                Email
+                <input type="email" name="email" required />
+              </label>
+              <label>
+                Password
+                <input type="password" name="password" />
+              </label>
+              <div class="admin-auth-actions">
+                <button class="button button-primary" type="submit">Sign in</button>
+                <button class="button button-secondary" type="button" data-magic-link>
+                  Send magic link
+                </button>
+              </div>
+              <p class="admin-auth-note">
+                Use email and password if your user already has one, or request a magic link for a
+                passwordless sign-in.
+              </p>
+              <p class="admin-auth-status" data-auth-status aria-live="polite"></p>
+            </form>
+          </>
+        ) : (
+          <div class="directory-message-card">
+            <p class="eyebrow">Configuration needed</p>
+            <h3>Supabase Auth is not configured yet.</h3>
+            <p>Add `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_ANON_KEY` or their `VITE_*` equivalents.</p>
+          </div>
+        )}
+      </article>
+
+      <article class="card admin-info-card">
+        <p class="eyebrow">Next step</p>
+        <h2>What this admin area is for</h2>
+        <ul class="feature-list">
+          <li>Simple website content editing</li>
+          <li>Club and venue page management</li>
+          <li>A future bridge into richer publishing workflows</li>
+        </ul>
+      </article>
+    </div>
+  </section>
+
+  <script>
+    import { getBrowserSupabase } from "../../../lib/supabase-browser";
+
+    const supabase = getBrowserSupabase();
+    const form = document.querySelector("[data-admin-login-form]");
+    const magicLinkButton = document.querySelector("[data-magic-link]");
+    const statusElement = document.querySelector("[data-auth-status]");
+
+    const setStatus = (message, isError = false) => {
+      if (!statusElement) return;
+      statusElement.textContent = message;
+      statusElement.classList.toggle("is-error", isError);
+    };
+
+    const getEmailValue = () => {
+      const emailInput = form?.querySelector('input[name="email"]');
+      return emailInput instanceof HTMLInputElement ? emailInput.value.trim() : "";
+    };
+
+    const getPasswordValue = () => {
+      const passwordInput = form?.querySelector('input[name="password"]');
+      return passwordInput instanceof HTMLInputElement ? passwordInput.value : "";
+    };
+
+    const redirectToAdmin = () => {
+      window.location.href = "/admin/";
+    };
+
+    if (supabase) {
+      supabase.auth.getSession().then(({ data }) => {
+        if (data.session) {
+          redirectToAdmin();
+        }
+      });
+
+      form?.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        const email = getEmailValue();
+        const password = getPasswordValue();
+
+        if (!email || !password) {
+          setStatus("Enter both email and password to sign in.", true);
+          return;
+        }
+
+        setStatus("Signing in...");
+
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+
+        if (error) {
+          setStatus(error.message, true);
+          return;
+        }
+
+        redirectToAdmin();
+      });
+
+      magicLinkButton?.addEventListener("click", async () => {
+        const email = getEmailValue();
+
+        if (!email) {
+          setStatus("Enter your email first to request a magic link.", true);
+          return;
+        }
+
+        setStatus("Sending magic link...");
+
+        const { error } = await supabase.auth.signInWithOtp({
+          email,
+          options: {
+            emailRedirectTo: `${window.location.origin}/admin/`
+          }
+        });
+
+        if (error) {
+          setStatus(error.message, true);
+          return;
+        }
+
+        setStatus("Magic link sent. Check your email.");
+      });
+    }
+  </script>
+</BaseLayout>

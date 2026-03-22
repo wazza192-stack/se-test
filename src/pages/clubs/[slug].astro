@@ -1,0 +1,321 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getClubPageBySlug } from "../../lib/club-pages";
+
+const { slug } = Astro.params;
+
+let clubPage;
+
+try {
+  clubPage = slug ? await getClubPageBySlug(slug) : undefined;
+} catch (error) {
+  console.error("Unable to load club page", error);
+}
+
+if (!clubPage) {
+  Astro.response.status = 404;
+}
+
+const club = clubPage?.club;
+
+const clubInitials = club
+  ? club.name
+      .split(/[\s&(]+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase() ?? "")
+      .join("")
+  : "";
+
+const heroImage = clubPage?.heroImageUrl ?? null;
+const overviewHeading = clubPage?.introductionHeading ?? `Why planners choose ${clubPage?.venueName ?? club?.name ?? "this venue"}`;
+const sectionLinks = [
+  clubPage?.keyFacts.length ? { href: "#key-information", label: "Key Information" } : null,
+  clubPage?.spaces.length ? { href: "#spaces", label: "Spaces" } : null,
+  clubPage?.events.length ? { href: "#events", label: "Events" } : null,
+  (clubPage?.christmasText || clubPage?.playOnPitchText || clubPage?.toursText)
+    ? { href: "#experiences", label: "Experiences" }
+    : null,
+  clubPage?.mapEmbedUrl ? { href: "#map", label: "Map" } : null
+].filter(Boolean);
+---
+
+<BaseLayout
+  title={club ? club.name : "Club not found"}
+  description={
+    club
+      ? `${club.name} club profile, venue information and enquiry details.`
+      : "Club not found."
+  }
+>
+  {clubPage ? (
+    <div class="club-page-shell">
+      <section class="club-hero section">
+        <div class:list={["club-hero-stage", !heroImage && "club-hero-stage-fallback"]} style={heroImage ? `--club-hero-image:url('${heroImage}')` : undefined}>
+          <div class="club-hero-overlay"></div>
+          <div class="club-hero-card">
+            <div class="club-hero-badge">
+              {club.crestUrl ? (
+                <img src={club.crestUrl} alt="" loading="eager" class="club-hero-image-clean" />
+              ) : (
+                <div class="club-hero-fallback club-hero-fallback-clean" aria-hidden="true">{clubInitials}</div>
+              )}
+            </div>
+            <div class="club-hero-copy-clean">
+              <p class="eyebrow">Club profile</p>
+              <h1>{club.name}</h1>
+              {clubPage?.venueName && <p class="club-hero-venue-clean">{clubPage.venueName}</p>}
+              <p class="lede">
+                Explore venue information, event opportunities and public contact details for {club.name}.
+              </p>
+              <div class="hero-actions">
+                <a class="button button-primary" href="/enquire/">Enquire Today</a>
+                {clubPage?.websiteHref && (
+                  <a class="button button-secondary" href={clubPage.websiteHref} target="_blank" rel="noreferrer">
+                    Visit venue website
+                  </a>
+                )}
+                <a class="button button-secondary" href="/venues/">Back to venues</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section-tight club-info-band-section">
+        <div class="club-info-band">
+          {clubPage?.address && (
+            <article class="club-info-item">
+              <span class="filter-label">Address</span>
+              <strong>{clubPage.address}</strong>
+            </article>
+          )}
+          {clubPage?.websiteUrl && (
+            <article class="club-info-item">
+              <span class="filter-label">Website</span>
+              <strong>
+                <a
+                  class="text-link"
+                  href={clubPage.websiteHref ?? `https://${clubPage.websiteUrl.replace(/^https?:\/\//, "")}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {clubPage.websiteUrl}
+                </a>
+              </strong>
+            </article>
+          )}
+          {clubPage?.nonMatchday && (
+            <article class="club-info-item">
+              <span class="filter-label">Non-matchday events</span>
+              <strong>{clubPage.nonMatchday.phone ?? "Phone on request"}</strong>
+              {clubPage.nonMatchday.email && <p>{clubPage.nonMatchday.email}</p>}
+            </article>
+          )}
+          {clubPage?.matchday && (
+            <article class="club-info-item">
+              <span class="filter-label">Matchday hospitality</span>
+              <strong>{clubPage.matchday.phone ?? "Phone on request"}</strong>
+              {clubPage.matchday.email && <p>{clubPage.matchday.email}</p>}
+            </article>
+          )}
+        </div>
+      </section>
+
+      {sectionLinks.length ? (
+        <section class="section section-tight club-anchor-section">
+          <div class="pill-grid">
+            {sectionLinks.map((item) => (
+              <a class="pill" href={item.href}>{item.label}</a>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      <section class="section section-tight">
+        <div class="detail-grid club-intro-grid">
+          <article class="card info-card club-panel club-panel-lead">
+            <p class="eyebrow">Overview</p>
+            <h2 class="club-section-title">{overviewHeading}</h2>
+            {(clubPage?.introduction.length
+              ? clubPage.introduction
+              : [`Explore venue and event opportunities connected with ${club.name}, then move into a direct enquiry with Stadium Experience.`]
+            ).map((paragraph) => (
+              <p>{paragraph}</p>
+            ))}
+          </article>
+          <article class="card info-card club-panel club-panel-accent club-actions-card">
+            <p class="eyebrow">Quick actions</p>
+            <h2 class="club-section-title">Plan your next step</h2>
+            <ul class="feature-list">
+              <li>Review key facts before you shortlist the venue</li>
+              <li>Explore space and event options in one place</li>
+              <li>Use the direct enquiry route for planning support</li>
+            </ul>
+            <div class="club-quick-links">
+              {clubPage?.socialLinks.map((link) => (
+                <a class="pill" href={link.href} target="_blank" rel="noreferrer">{link.label}</a>
+              ))}
+              {clubPage?.tourBookingHref && (
+                <a class="pill" href={clubPage.tourBookingHref} target="_blank" rel="noreferrer">
+                  Book a Tour
+                </a>
+              )}
+            </div>
+          </article>
+        </div>
+      </section>
+
+      {clubPage?.keyFacts.length ? (
+        <section class="section section-tight club-section-shell" id="key-information">
+          <div class="club-facts-board">
+            <div class="club-facts-intro">
+              <p class="eyebrow">Key information</p>
+              <h2 class="club-section-title">Planning facts</h2>
+              <p class="club-section-intro">
+                A quick summary of the details event buyers typically look for first when deciding
+                whether to shortlist a venue.
+              </p>
+            </div>
+            <div class="key-facts-grid">
+              {clubPage.keyFacts.map((fact) => (
+                <article class="card key-fact-card club-fact-card">
+                  <span class="club-fact-label">{fact.label}</span>
+                  <strong>{fact.value}</strong>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {clubPage?.spaces.length ? (
+        <section class="section section-tight club-section-shell" id="spaces">
+          <div class="section-heading club-section-heading">
+            <p class="eyebrow">Spaces for hire</p>
+            <h2 class="club-section-title">Spaces available at {clubPage.venueName ?? club.name}</h2>
+          </div>
+          <div class="card-grid space-grid">
+            {clubPage.spaces.map((space) => (
+              <article class="card space-card club-panel club-panel-soft">
+                <h3>{space.title}</h3>
+                <p>{space.body}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {clubPage?.events.length ? (
+        <section class="section section-tight club-section-shell" id="events">
+          <div class="section-heading club-section-heading">
+            <p class="eyebrow">Events</p>
+            <h2 class="club-section-title">Popular event types</h2>
+          </div>
+          <div class="card-grid">
+            {clubPage.events.map((eventItem) => (
+              <article class="card club-panel club-panel-soft">
+                <h3>{eventItem.title}</h3>
+                <p>{eventItem.body}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {(clubPage?.christmasText || clubPage?.playOnPitchText || clubPage?.toursText) ? (
+        <section class="section section-tight club-section-shell" id="experiences">
+          <div class="section-heading club-section-heading">
+            <p class="eyebrow">Experiences</p>
+            <h2 class="club-section-title">Seasonal and special experiences</h2>
+          </div>
+          <div class="card-grid card-grid-two">
+            {clubPage?.christmasText && (
+              <article class="card info-card club-panel club-panel-soft">
+                {clubPage.christmasImageUrl && (
+                  <div class="context-image-wrap">
+                    <img
+                      class="context-image"
+                      src={clubPage.christmasImageUrl}
+                      alt={`Christmas events at ${clubPage.venueName ?? club.name}`}
+                      loading="lazy"
+                    />
+                  </div>
+                )}
+                <p class="eyebrow">Christmas</p>
+                <h3>Festive events</h3>
+                <p>{clubPage.christmasText}</p>
+              </article>
+            )}
+            {clubPage?.playOnPitchText && (
+              <article class="card info-card club-panel club-panel-soft">
+                {clubPage.playOnPitchImageUrl && (
+                  <div class="context-image-wrap">
+                    <img
+                      class="context-image"
+                      src={clubPage.playOnPitchImageUrl}
+                      alt={`Play on the pitch at ${clubPage.venueName ?? club.name}`}
+                      loading="lazy"
+                    />
+                  </div>
+                )}
+                <p class="eyebrow">Play on the pitch</p>
+                <h3>Experiences and hospitality</h3>
+                <p>{clubPage.playOnPitchText}</p>
+              </article>
+            )}
+            {clubPage?.toursText && (
+              <article class="card info-card club-panel club-panel-soft">
+                <p class="eyebrow">Stadium tours</p>
+                <h3>Take a tour</h3>
+                <p>{clubPage.toursText}</p>
+              </article>
+            )}
+          </div>
+        </section>
+      ) : null}
+
+      {clubPage?.mapEmbedUrl ? (
+        <section class="section section-tight club-section-shell" id="map">
+          <div class="section-heading club-section-heading">
+            <p class="eyebrow">Map</p>
+            <h2 class="club-section-title">Find the venue</h2>
+          </div>
+          <div class="club-map-shell">
+            <iframe
+              class="club-map"
+              title={`Map for ${club.name}`}
+              src={clubPage.mapEmbedUrl}
+              loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade"
+            ></iframe>
+          </div>
+        </section>
+      ) : null}
+
+      <section class="section section-tight">
+        <div class="newsletter-band club-cta-band">
+          <div>
+            <p class="eyebrow">Need help choosing?</p>
+            <h2>Talk to Stadium Experience about this venue or similar options.</h2>
+            <p>
+              If you are comparing stadium venues, we can help guide you toward the right fit for your
+              event, location and guest numbers.
+            </p>
+          </div>
+          <a class="button button-primary" href="/enquire/">Make an enquiry</a>
+        </div>
+      </section>
+    </div>
+  ) : (
+    <section class="page-hero">
+      <p class="eyebrow">Club profile</p>
+      <h1>Club not found</h1>
+      <p class="lede">
+        We could not find that club in the public directory. Please return to the venues page and
+        choose another club.
+      </p>
+      <a class="button button-primary" href="/venues/">Back to venues</a>
+    </section>
+  )}
+</BaseLayout>

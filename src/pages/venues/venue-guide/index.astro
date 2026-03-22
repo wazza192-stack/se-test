@@ -1,0 +1,46 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import { plannerTrustPoints, venueGuideHighlights } from "../../../data/site";
+---
+
+<BaseLayout
+  title="Venue Guide"
+  description="Download the Stadium Experience venue guide with venue capacities and direct contact details."
+>
+  <section class="page-hero">
+    <p class="eyebrow">Venues</p>
+    <h1>Stadium Experience Venue Guide</h1>
+    <p class="lede">
+      A practical guide for event buyers who want venue capacities, direct contacts and a faster
+      way to compare stadium venues across the UK.
+    </p>
+  </section>
+
+  <section class="section section-tight">
+    <div class="detail-grid venue-detail-grid">
+      <article class="card info-card">
+        <p class="eyebrow">Download</p>
+        <h2>A planning shortcut for venue research</h2>
+        <ul class="feature-list">
+          {venueGuideHighlights.map((item) => (
+            <li>{item}</li>
+          ))}
+        </ul>
+        <a class="button button-primary" href="/enquire/">Request the latest guide</a>
+      </article>
+      <article class="card info-card">
+        <p class="eyebrow">Included</p>
+        <h2>What you will find inside</h2>
+        <ul class="tag-list tag-list-plain">
+          <li>Venue capacities</li>
+          <li>Direct contacts</li>
+          <li>Location information</li>
+          <li>Event suitability</li>
+          {plannerTrustPoints.slice(0, 2).map((point) => (
+            <li>{point}</li>
+          ))}
+        </ul>
+      </article>
+    </div>
+  </section>
+</BaseLayout>

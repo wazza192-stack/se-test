@@ -1,0 +1,271 @@
+---
+import "../styles/global.css";
+
+type Props = {
+  title: string;
+  description: string;
+  chrome?: "site" | "admin";
+};
+
+const { title, description, chrome = "site" } = Astro.props;
+const currentYear = new Date().getFullYear();
+const isAdminChrome = chrome === "admin";
+
+const navItems = [
+  {
+    href: "/about/",
+    label: "About Us",
+    children: [
+      { href: "/about/", label: "Our Activities" },
+      { href: "/about/whats-on/", label: "What's On" },
+      { href: "/about/whats-on/", label: "Stadium Experience Industry Meetings" },
+      { href: "/awards/", label: "Awards Tickets" },
+      { href: "/about/", label: "Group Discounts" },
+      { href: "/about/", label: "Join" },
+      { href: "/about/", label: "Member Testimonials" },
+      { href: "/about/", label: "Our Leadership Team" }
+    ]
+  },
+  {
+    href: "/venues/",
+    label: "Venues",
+    children: [
+      { href: "/venues/", label: "Search All Venues" },
+      { href: "/venues/", label: "Filter Stadium Search" },
+      { href: "/venues/venue-guide/", label: "Venue Guide" },
+      { href: "/venues/", label: "Latest Offers" },
+      { href: "/venues/christmas-parties/", label: "Christmas Parties" },
+      { href: "/venues/", label: "Box Hire & Smaller Meetings" },
+      { href: "/venues/", label: "Play on Pitch Experiences" },
+      { href: "/venues/", label: "Venues with Accommodation" },
+      { href: "/venues/", label: "Prom & Graduation Venues" },
+      { href: "/venues/", label: "Wedding Venues" },
+      { href: "/venues/", label: "Asian Wedding Venues" },
+      { href: "/venues/", label: "Awards Celebrations & Gala Dinners" },
+      { href: "/venues/", label: "Exhibition & Trade Show Venues" },
+      { href: "/venues/", label: "Unique Event Spaces" },
+      { href: "/venues/", label: "Large Event Spaces in London" },
+      { href: "/venues/", label: "Match Day Hospitality" }
+    ]
+  },
+  {
+    href: "/awards/",
+    label: "Stadium Events & Hospitality Awards",
+    children: [
+      { href: "/awards/", label: "2026 Awards" },
+      { href: "/awards/", label: "Book Tickets" },
+      { href: "/awards/", label: "Awards Accommodation" },
+      { href: "/awards/", label: "Award Categories" },
+      { href: "/awards/", label: "Independent Judging" },
+      { href: "/awards/", label: "Sponsorship Opportunities" },
+      { href: "/awards/", label: "Frequently Asked Questions" }
+    ]
+  },
+  {
+    href: "/latest-news/",
+    label: "Latest News"
+  },
+  {
+    href: "/stadium-jobs/",
+    label: "Stadium Jobs"
+  },
+  {
+    href: "/suppliers/",
+    label: "Suppliers",
+    children: [
+      { href: "/suppliers/", label: "Meeting Presentations" },
+      { href: "/suppliers/", label: "Exhibition Opportunities" },
+      { href: "/awards/", label: "Award Sponsorship" },
+      { href: "/suppliers/advertising/", label: "Advertising" },
+      { href: "/suppliers/", label: "Supplier Testimonials" },
+      { href: "/about/", label: "Group Discounts" }
+    ]
+  }
+];
+
+const usefulLinks = [
+  { href: "/about/", label: "About Us" },
+  { href: "/venues/", label: "Venues" },
+  { href: "/awards/", label: "Stadium Events & Hospitality Awards" },
+  { href: "/latest-news/", label: "Latest News" },
+  { href: "/suppliers/", label: "Suppliers" }
+];
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+  </head>
+  <body>
+    <div class:list={["site-shell", isAdminChrome && "site-shell-admin"]}>
+      {isAdminChrome ? (
+        <header class="admin-site-header">
+          <div class="admin-site-header-inner">
+            <a class="brand admin-brand" href="/admin/">
+              <img class="brand-logo" src="/assets/stadium-experience/logo.svg" alt="Stadium Experience" />
+              <div class="brand-copy admin-brand-copy">
+                <span class="brand-kicker">Admin</span>
+                <span class="brand-subtitle">Content management for the Stadium Experience website</span>
+              </div>
+            </a>
+            <a class="button button-secondary button-compact" href="/">View public site</a>
+          </div>
+        </header>
+      ) : (
+        <>
+          <div class="topbar">
+            <div class="topbar-inner">
+              <div class="topbar-contact">
+                <span>Call us on 0345 226 5494</span>
+                <span>Commission free venue enquiries</span>
+              </div>
+              <div class="topbar-links">
+                <a href="/venues/venue-guide/">Download Venue Guide</a>
+                <a href="/enquire/">Enquire Today</a>
+              </div>
+            </div>
+          </div>
+          <header class="site-header">
+            <div class="site-header-inner">
+              <a class="brand" href="/">
+                <img class="brand-logo" src="/assets/stadium-experience/logo.svg" alt="Stadium Experience" />
+                <div class="brand-copy">
+                  <span class="brand-kicker">UK Stadium Venues</span>
+                  <span class="brand-subtitle">Conferences, meetings and events across the network</span>
+                </div>
+              </a>
+              <div class="header-actions">
+                <nav class="site-nav" aria-label="Primary">
+                  {navItems.map((item) => (
+                    <div class:list={["nav-item", item.children && "nav-item-has-children"]}>
+                      <a href={item.href}>{item.label}</a>
+                      {item.children && (
+                        <div class="nav-dropdown">
+                          {item.children.map((child) => (
+                            <a href={child.href}>{child.label}</a>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </nav>
+                <a class="header-enquire" href="/enquire/">Plan Your Event</a>
+                <button class="mobile-menu-toggle" type="button" aria-expanded="false" aria-controls="mobile-menu">
+                  Menu
+                </button>
+              </div>
+            </div>
+          </header>
+          <div class="mobile-menu-overlay" id="mobile-menu" hidden>
+            <div class="mobile-menu-inner">
+              <div class="mobile-menu-header">
+                <img class="brand-logo" src="/assets/stadium-experience/logo.svg" alt="Stadium Experience" />
+                <button class="mobile-menu-close" type="button" aria-label="Close menu">&times;</button>
+              </div>
+              <nav class="mobile-nav" aria-label="Mobile Primary">
+                {navItems.map((item) => (
+                  <details class="mobile-nav-group">
+                    <summary>
+                      <a href={item.href}>{item.label}</a>
+                    </summary>
+                    {item.children && (
+                      <div class="mobile-nav-children">
+                        {item.children.map((child) => (
+                          <a href={child.href}>{child.label}</a>
+                        ))}
+                      </div>
+                    )}
+                  </details>
+                ))}
+              </nav>
+              <a class="header-enquire mobile-enquire" href="/enquire/">Plan Your Event</a>
+            </div>
+          </div>
+        </>
+      )}
+      <main>
+        <slot />
+      </main>
+      {isAdminChrome ? (
+        <footer class="admin-site-footer">
+          <div class="admin-site-footer-inner">
+            <p>Stadium Experience admin workspace</p>
+            <p>&#169; {currentYear} Stadium Experience</p>
+          </div>
+        </footer>
+      ) : (
+        <footer class="site-footer">
+          <div class="footer-top">
+            <div class="footer-intro">
+              <p class="eyebrow">Stadium Experience</p>
+              <h2>UK stadium venues for meetings, conferences and events.</h2>
+              <p>
+                Browse football, rugby and cricket venues across the UK and enquire directly with the
+                teams behind each space.
+              </p>
+            </div>
+            <a class="text-link footer-cta-link" href="/venues/">Browse venues</a>
+          </div>
+          <div class="footer-grid">
+            <div>
+              <h3>Useful Links</h3>
+              <ul class="footer-list">
+                {usefulLinks.map((item) => (
+                  <li><a href={item.href}>{item.label}</a></li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h3>Legal</h3>
+              <ul class="footer-list">
+                <li><a href="/">Privacy &amp; Cookie Policy</a></li>
+                <li><a href="/">Terms &amp; Conditions</a></li>
+                <li><a href="/">Company Constitution</a></li>
+              </ul>
+            </div>
+            <div>
+              <h3>Contact Us</h3>
+              <p>Stadium Experience Ltd.<br />Lytchett House, 13 Freeland Park, Wareham Road, Poole, Dorset, BH16 6FA</p>
+              <p>Tel: 0345 226 5494</p>
+              <p>Email: office@stadiumexperience.com</p>
+            </div>
+          </div>
+          <p class="footer-meta">&#169; {currentYear} Stadium Experience</p>
+        </footer>
+      )}
+    </div>
+    {!isAdminChrome && (
+      <script>
+        const menuToggle = document.querySelector(".mobile-menu-toggle");
+        const menuOverlay = document.querySelector(".mobile-menu-overlay");
+        const menuClose = document.querySelector(".mobile-menu-close");
+
+        const openMenu = () => {
+          if (!menuToggle || !menuOverlay) return;
+          menuOverlay.hidden = false;
+          menuOverlay.classList.add("is-open");
+          menuToggle.setAttribute("aria-expanded", "true");
+          document.body.classList.add("menu-open");
+        };
+
+        const closeMenu = () => {
+          if (!menuToggle || !menuOverlay) return;
+          menuOverlay.classList.remove("is-open");
+          menuOverlay.hidden = true;
+          menuToggle.setAttribute("aria-expanded", "false");
+          document.body.classList.remove("menu-open");
+        };
+
+        menuToggle?.addEventListener("click", openMenu);
+        menuClose?.addEventListener("click", closeMenu);
+        menuOverlay?.addEventListener("click", (event) => {
+          if (event.target === menuOverlay) closeMenu();
+        });
+      </script>
+    )}
+  </body>
+</html>

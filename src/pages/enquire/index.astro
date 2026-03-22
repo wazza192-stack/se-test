@@ -1,0 +1,108 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { enquiryBenefits, enquirySteps, plannerTrustPoints } from "../../data/site";
+import { getVenues } from "../../lib/content";
+
+const venues = await getVenues();
+---
+
+<BaseLayout
+  title="Enquire"
+  description="Venue enquiry form for Stadium Experience venues, awards and supplier opportunities."
+>
+  <section class="page-hero">
+    <p class="eyebrow">Enquire</p>
+    <h1>Send a clear brief and we will route it to the right team.</h1>
+    <p class="lede">
+      Use one enquiry form for venue bookings, membership, supplier opportunities and awards
+      questions, with a cleaner hand-off behind the scenes.
+    </p>
+  </section>
+
+  <section class="section section-tight">
+    <div class="listing-shell">
+      <div class="listing-main">
+        <form class="enquiry-form enquiry-form-rich" method="post" action="/api/enquiries">
+          <label>
+            Name
+            <input type="text" name="name" required />
+          </label>
+          <label>
+            Email
+            <input type="email" name="email" required />
+          </label>
+          <label>
+            Company
+            <input type="text" name="companyName" />
+          </label>
+          <label>
+            Enquiry type
+            <select name="enquiryType" required>
+              <option value="venue">Venue booking</option>
+              <option value="membership">Membership</option>
+              <option value="supplier">Supplier</option>
+              <option value="awards">Awards</option>
+            </select>
+          </label>
+          <label>
+            Venue
+            <select name="venueId">
+              <option value="">General enquiry</option>
+              {venues.map((venue) => (
+                <option value={venue.slug}>{venue.name}</option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Expected guests
+            <select name="guestCount">
+              <option value="">Select if known</option>
+              <option value="under-100">Up to 100</option>
+              <option value="100-250">100 - 250</option>
+              <option value="250-500">250 - 500</option>
+              <option value="500-plus">500+</option>
+            </select>
+          </label>
+          <label class="full-width">
+            Message
+            <textarea name="message" rows="6" required></textarea>
+          </label>
+          <div class="full-width enquiry-actions">
+            <button class="button button-primary" type="submit">Send enquiry</button>
+            <p class="form-note">
+              Your enquiry goes directly into the Stadium Experience routing flow so it reaches the
+              right venue or team quickly.
+            </p>
+          </div>
+        </form>
+      </div>
+      <aside class="listing-sidebar">
+        <article class="card sidebar-card">
+          <p class="eyebrow">Why this works</p>
+          <h3>A better enquiry experience for planners and venues.</h3>
+          <ul class="feature-list">
+            {enquiryBenefits.map((benefit) => (
+              <li>{benefit}</li>
+            ))}
+          </ul>
+        </article>
+        <article class="card sidebar-card">
+          <p class="eyebrow">What happens next</p>
+          <ol class="process-list">
+            {enquirySteps.map((step) => (
+              <li>{step}</li>
+            ))}
+          </ol>
+        </article>
+        <article class="card sidebar-card">
+          <p class="eyebrow">Planner reassurance</p>
+          <ul class="tag-list tag-list-plain">
+            {plannerTrustPoints.map((point) => (
+              <li>{point}</li>
+            ))}
+          </ul>
+        </article>
+      </aside>
+    </div>
+  </section>
+</BaseLayout>

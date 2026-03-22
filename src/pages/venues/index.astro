@@ -1,0 +1,209 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import ClubDirectory from "../../components/ClubDirectory.astro";
+import { eventCategories, plannerTrustPoints, testimonials, venueSearchBenefits } from "../../data/site";
+import { getVenues } from "../../lib/content";
+
+const venues = await getVenues();
+const featuredRegions = [...new Set(venues.map((venue) => venue.region))];
+const venueFinderData = venues.map((venue) => ({
+  ...venue,
+  searchTerms: [
+    venue.name,
+    venue.city,
+    venue.region,
+    venue.summary,
+    ...venue.eventTypes,
+    ...venue.features
+  ]
+    .join(" ")
+    .toLowerCase()
+}));
+---
+
+<BaseLayout
+  title="Venues"
+  description="Search unique sporting venues across the UK for conferences, meetings and events."
+>
+  <section class="page-hero">
+    <p class="eyebrow">Venues</p>
+    <h1>Search all venues across the Stadium Experience network.</h1>
+    <p class="lede">
+      Explore football, rugby and cricket venues across the UK for meetings, conferences,
+      hospitality, awards dinners and celebrations.
+    </p>
+  </section>
+
+  <section class="section section-tight">
+    <div class="listing-shell">
+      <div class="listing-main">
+        <div class="section-heading section-heading-compact">
+          <p class="eyebrow">Find a stadium in your area</p>
+          <h2>Search by postcode, city, club or stadium name.</h2>
+          <p class="lede">
+            Start with the location you know best and narrow down the most relevant stadium venues
+            quickly, with direct routes to venue details and enquiry.
+          </p>
+        </div>
+        <div class="search-card venue-area-finder">
+          <div class="search-heading venue-area-finder-heading">
+            <div>
+              <p class="eyebrow">Area finder</p>
+              <h3>Find nearby venue options fast.</h3>
+            </div>
+            <p class="search-subtitle">
+              Enter a postcode, town, city, club or stadium name and we will filter the current
+              venue list instantly.
+            </p>
+          </div>
+
+          <form class="venue-area-form" data-venue-area-form>
+            <label class="venue-area-field">
+              <span class="filter-label">Location search</span>
+              <input
+                type="search"
+                name="location"
+                placeholder="Try London, Leeds, Birmingham or a postcode"
+                autocomplete="off"
+                data-venue-search-input
+              />
+            </label>
+            <button class="button button-primary venue-area-button" type="submit">Search venues</button>
+          </form>
+
+          <div class="filter-bar filter-bar-rich venue-area-meta">
+            <div>
+              <span class="filter-label">Regions</span>
+              <strong>{featuredRegions.join(" / ")}</strong>
+            </div>
+            <div>
+              <span class="filter-label">Popular searches</span>
+              <strong>{eventCategories.slice(0, 4).join(" / ")}</strong>
+            </div>
+            <div>
+              <span class="filter-label">Results</span>
+              <strong data-venue-results-count>{venues.length} venues</strong>
+            </div>
+          </div>
+        </div>
+        <div class="venue-results-header">
+          <div>
+            <p class="eyebrow">Venue results</p>
+            <h3>Available stadium venues</h3>
+          </div>
+          <p class="lede" data-venue-results-summary>
+            Browse the current venue selection below, or use the area finder to narrow it down.
+          </p>
+        </div>
+
+        <div class="stack venue-results-list" data-venue-results>
+          {venueFinderData.map((venue) => (
+            <article class="card list-card list-card-rich venue-result-card" data-search-terms={venue.searchTerms}>
+              <div class="venue-result-media" style={`background-image:url('${venue.heroImage}')`}></div>
+              <div class="venue-result-copy">
+                <div class="venue-topline">
+                  <span>{venue.city}</span>
+                  <span>{venue.region}</span>
+                </div>
+                <h3>{venue.name}</h3>
+                <p>{venue.summary}</p>
+                <div class="venue-result-meta">
+                  <span class="capacity">{venue.guestCapacityLabel}</span>
+                  <ul class="tag-list">
+                    {venue.eventTypes.map((tag) => (
+                      <li>{tag}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div class="venue-card-actions">
+                  <a class="text-link" href={`/venues/${venue.slug}/`}>View venue details</a>
+                  <a class="button button-secondary button-compact" href="/enquire/">Enquire</a>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+
+        <div class="directory-message-card" data-venue-empty hidden>
+          <p class="eyebrow">No matching venues</p>
+          <h3>We could not find a venue matching that search.</h3>
+          <p>Try a nearby city, a different postcode area or browse the club directory below.</p>
+        </div>
+      </div>
+      <aside class="listing-sidebar">
+        <article class="card sidebar-card">
+          <p class="eyebrow">Why use Stadium Experience</p>
+          <h3>Professional venue search with direct venue access.</h3>
+          <ul class="feature-list">
+            {venueSearchBenefits.map((benefit) => (
+              <li>{benefit}</li>
+            ))}
+          </ul>
+        </article>
+        <article class="card sidebar-card">
+          <p class="eyebrow">Planner confidence</p>
+          <h3>What event buyers value most</h3>
+          <ul class="tag-list tag-list-plain">
+            {plannerTrustPoints.map((point) => (
+              <li>{point}</li>
+            ))}
+          </ul>
+        </article>
+        <article class="card sidebar-card testimonial-card">
+          <p class="eyebrow">From the industry</p>
+          <blockquote>{testimonials[0].quote}</blockquote>
+          <p class="testimonial-meta">{testimonials[0].name}, {testimonials[0].role}</p>
+        </article>
+      </aside>
+    </div>
+  </section>
+
+  <ClubDirectory />
+
+  <script>
+    const searchInput = document.querySelector("[data-venue-search-input]");
+    const searchForm = document.querySelector("[data-venue-area-form]");
+    const resultCards = Array.from(document.querySelectorAll("[data-search-terms]"));
+    const resultCount = document.querySelector("[data-venue-results-count]");
+    const resultSummary = document.querySelector("[data-venue-results-summary]");
+    const emptyState = document.querySelector("[data-venue-empty]");
+
+    const updateVenueResults = (query) => {
+      const normalized = query.trim().toLowerCase();
+      let matches = 0;
+
+      resultCards.forEach((card) => {
+        const haystack = card.getAttribute("data-search-terms") ?? "";
+        const isVisible = !normalized || haystack.includes(normalized);
+        card.hidden = !isVisible;
+
+        if (isVisible) {
+          matches += 1;
+        }
+      });
+
+      if (resultCount) {
+        resultCount.textContent = `${matches} venue${matches === 1 ? "" : "s"}`;
+      }
+
+      if (resultSummary) {
+        resultSummary.textContent = normalized
+          ? `Showing venues matching "${query.trim()}".`
+          : "Browse the current venue selection below, or use the area finder to narrow it down.";
+      }
+
+      if (emptyState) {
+        emptyState.hidden = matches !== 0;
+      }
+    };
+
+    searchForm?.addEventListener("submit", (event) => {
+      event.preventDefault();
+      updateVenueResults(searchInput?.value ?? "");
+    });
+
+    searchInput?.addEventListener("input", () => {
+      updateVenueResults(searchInput.value);
+    });
+  </script>
+</BaseLayout>

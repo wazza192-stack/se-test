@@ -1,0 +1,119 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { plannerTrustPoints, testimonials } from "../../data/site";
+import { getVenueBySlug } from "../../lib/content";
+
+const { slug } = Astro.params;
+const venue = slug ? await getVenueBySlug(slug) : undefined;
+
+if (!venue) {
+  return Astro.redirect("/venues/");
+}
+---
+
+<BaseLayout title={venue.name} description={venue.summary}>
+  <section class="venue-hero" style={`--hero-image: url('${venue.heroImage}')`}>
+    <div class="venue-hero-inner">
+      <p class="eyebrow">{venue.city} | {venue.region}</p>
+      <h1>{venue.name}</h1>
+      <p class="lede">{venue.summary}</p>
+      <div class="hero-actions">
+        <a class="button button-primary" href="/enquire/">Enquire about this venue</a>
+        <a class="button button-secondary" href="/venues/">Back to all venues</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-tight">
+    <div class="venue-meta-bar venue-meta-bar-rich">
+      <div>
+        <span class="filter-label">Guest capacity</span>
+        <strong>{venue.guestCapacityLabel}</strong>
+      </div>
+      <div>
+        <span class="filter-label">Event types</span>
+        <strong>{venue.eventTypes.join(" / ")}</strong>
+      </div>
+      <div>
+        <span class="filter-label">Direct enquiries</span>
+        <strong>{venue.contactEmail}</strong>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-tight">
+    <div class="detail-grid venue-detail-grid">
+      <article class="card info-card">
+        <p class="eyebrow">Overview</p>
+        <h2>Why planners choose {venue.name}</h2>
+        <p>{venue.description}</p>
+        <ul class="feature-list">
+          {venue.features.map((feature) => (
+            <li>{feature}</li>
+          ))}
+        </ul>
+      </article>
+      <article class="card info-card">
+        <p class="eyebrow">Planning snapshot</p>
+        <h2>Quick shortlist information</h2>
+        <ul class="tag-list">
+          {venue.eventTypes.map((eventType) => (
+            <li>{eventType}</li>
+          ))}
+        </ul>
+        <div class="trust-stack">
+          {plannerTrustPoints.slice(0, 3).map((point) => (
+            <div class="trust-point">{point}</div>
+          ))}
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="section section-tight">
+    <div class="section-heading">
+      <p class="eyebrow">Spaces</p>
+      <h2>Room formats and indicative capacities</h2>
+    </div>
+    <div class="card-grid space-grid">
+      {venue.spaces.map((space) => (
+        <article class="card space-card">
+          <h3>{space.name}</h3>
+          <div class="space-stats">
+            <div>
+              <span class="filter-label">Theatre</span>
+              <strong>{space.theatre}</strong>
+            </div>
+            <div>
+              <span class="filter-label">Dining</span>
+              <strong>{space.dining}</strong>
+            </div>
+            <div>
+              <span class="filter-label">Standing</span>
+              <strong>{space.standing}</strong>
+            </div>
+          </div>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <section class="section section-tight">
+    <div class="detail-grid venue-detail-grid">
+      <article class="card info-card">
+        <p class="eyebrow">Enquiry confidence</p>
+        <h2>Direct access to the venue team</h2>
+        <p>
+          Stadium Experience keeps the route from shortlist to enquiry straightforward, helping
+          planners move quickly while preserving direct contact with the venue.
+        </p>
+        <a class="button button-primary" href="/enquire/">Start your enquiry</a>
+      </article>
+      <article class="card testimonial-card">
+        <p class="eyebrow">Planner feedback</p>
+        <blockquote>{testimonials[0].quote}</blockquote>
+        <p class="testimonial-meta">{testimonials[0].name}, {testimonials[0].role}</p>
+      </article>
+    </div>
+  </section>
+</BaseLayout>

@@ -1,0 +1,57 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import { christmasPartyHighlights } from "../../../data/site";
+import { getVenues } from "../../../lib/content";
+
+const venues = (await getVenues()).slice(0, 3);
+---
+
+<BaseLayout
+  title="Christmas Parties"
+  description="Christmas party venues across the Stadium Experience network."
+>
+  <section class="page-hero">
+    <p class="eyebrow">Venues</p>
+    <h1>Christmas Parties at Stadium Venues</h1>
+    <p class="lede">
+      Shared and exclusive festive events at unique stadium venues across the UK.
+    </p>
+  </section>
+
+  <section class="section section-tight">
+    <div class="detail-grid">
+      <article class="card info-card">
+        <p class="eyebrow">Why book with us</p>
+        <h2>Festive celebrations with something different</h2>
+        <ul class="feature-list">
+          {christmasPartyHighlights.map((item) => (
+            <li>{item}</li>
+          ))}
+        </ul>
+      </article>
+      <article class="card info-card">
+        <p class="eyebrow">Enquiries</p>
+        <h2>Start planning</h2>
+        <p>Tell us your preferred region, guest numbers and whether you want shared or exclusive use.</p>
+        <a class="button button-primary" href="/enquire/">Enquire today</a>
+      </article>
+    </div>
+  </section>
+
+  <section class="section section-tight">
+    <div class="card-grid venue-grid">
+      {venues.map((venue) => (
+        <article class="card venue-card">
+          <div class="venue-card-image" style={`background-image:url('${venue.heroImage}')`}></div>
+          <div class="venue-topline">
+            <span>{venue.city}</span>
+            <span>{venue.region}</span>
+          </div>
+          <h2>{venue.name}</h2>
+          <p>{venue.summary}</p>
+          <a class="text-link" href={`/venues/${venue.slug}/`}>See our venue</a>
+        </article>
+      ))}
+    </div>
+  </section>
+</BaseLayout>

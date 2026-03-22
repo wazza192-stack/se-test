@@ -1,0 +1,323 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { eventCategories, homepagePromoCards, homepageSections, homepageTiles, stats } from "../data/site";
+import { getVenues } from "../lib/content";
+
+const venues = await getVenues();
+const featuredVenues = venues.slice(0, 3);
+const heroSlides = [
+  {
+    title: "Unique sporting venues across the UK",
+    body: "Discover memorable football, rugby and cricket venues for conferences, meetings, dinners and large-scale events.",
+    href: "/venues/",
+    cta: "See our venues",
+    className: "hero-slide-main"
+  },
+  {
+    title: "Adaptable spaces for large and small events",
+    body: "From executive boxes to expansive hospitality suites, member venues offer flexible layouts and direct access to venue teams.",
+    href: "/venues/",
+    cta: "Explore event spaces",
+    className: "hero-slide-secondary"
+  },
+  {
+    title: "Room with a view",
+    body: "Pitch-facing lounges, private dining rooms and behind-the-scenes experiences help turn practical events into standout occasions.",
+    href: "/venues/",
+    cta: "Find a distinctive venue",
+    className: "hero-slide-view"
+  },
+  {
+    title: "Christmas parties and seasonal celebrations",
+    body: "Plan festive events at stadium venues across the UK, with shared parties and exclusive private hire options available.",
+    href: "/venues/christmas-parties/",
+    cta: "Browse festive venues",
+    className: "hero-slide-accent"
+  }
+];
+---
+
+<BaseLayout
+  title="Stadium Experience"
+  description="Unique sporting venues across the UK for conferences, meetings and events."
+>
+  <section class="home-hero">
+    <div class="hero-slider" data-hero-slider>
+      <div class="hero-grid">
+        {heroSlides.map((slide, index) => (
+          <a
+            class:list={["hero-slide", slide.className, index === 0 && "is-active"]}
+            href={slide.href}
+            data-hero-slide
+            aria-hidden={index === 0 ? "false" : "true"}
+          >
+            <div class="hero-slide-shell">
+              <div class="hero-content">
+                <p class="eyebrow">Stadium Experience</p>
+                {index === 0 ? <h1>{slide.title}</h1> : <h2>{slide.title}</h2>}
+                <p class="hero-copy">{slide.body}</p>
+                <div class="hero-actions">
+                  <span class="button button-primary">{slide.cta}</span>
+                  <span class="button button-secondary hero-secondary-action">Direct venue enquiries</span>
+                </div>
+                <ul class="hero-stat-row" aria-label="Key Stadium Experience statistics">
+                  {stats.slice(0, 3).map((stat) => (
+                    <li>
+                      <strong>{stat.value}</strong>
+                      <span>{stat.label}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <aside class="hero-panel">
+                <p class="hero-panel-label">Plan with confidence</p>
+                <h3>Direct access to venue teams across the UK.</h3>
+                <p>
+                  Shortlist spaces by region, capacity and event type, then enquire without
+                  commission through Stadium Experience.
+                </p>
+                <div class="hero-panel-points">
+                  <span>70+ member venues</span>
+                  <span>Football, rugby and cricket clubs</span>
+                  <span>Commission free venue enquiries</span>
+                </div>
+              </aside>
+            </div>
+          </a>
+        ))}
+      </div>
+      <button class="hero-arrow hero-arrow-prev" type="button" aria-label="Previous slide" data-hero-prev>
+        &lsaquo;
+      </button>
+      <button class="hero-arrow hero-arrow-next" type="button" aria-label="Next slide" data-hero-next>
+        &rsaquo;
+      </button>
+    </div>
+    <div class="hero-controls" aria-hidden="true">
+      {heroSlides.map((_, index) => (
+        <button
+          class:list={["hero-dot", index === 0 && "hero-dot-active"]}
+          type="button"
+          data-hero-dot
+          aria-label={`Go to slide ${index + 1}`}
+        ></button>
+      ))}
+    </div>
+  </section>
+
+  <section class="search-section">
+    <div class="search-card">
+      <div class="search-heading">
+        <div class="section-heading">
+          <p class="eyebrow">Find a stadium in your area</p>
+          <h2>Search by city, postcode, club or stadium.</h2>
+        </div>
+        <p class="search-subtitle">
+          Start broad or search for a specific venue, then enquire directly with the team behind
+          the space.
+        </p>
+      </div>
+      <form class="search-form">
+        <input type="text" placeholder="Club or stadium name" />
+        <input type="text" placeholder="City" />
+        <select>
+          <option>Region</option>
+          <option>East</option>
+          <option>London</option>
+          <option>Midlands</option>
+          <option>North</option>
+          <option>North West</option>
+          <option>Scotland</option>
+          <option>South</option>
+          <option>Wales</option>
+        </select>
+        <select>
+          <option>Guest Numbers</option>
+          <option>Up to 100</option>
+          <option>Up to 250</option>
+          <option>Up to 500</option>
+          <option>Up to 700</option>
+          <option>1000+</option>
+        </select>
+        <a class="button button-primary search-button" href="/venues/">Search venues</a>
+      </form>
+      <ul class="search-benefits">
+        {homepageSections.map((section) => (
+          <li>{section.eyebrow}</li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="section section-intro">
+    <div class="section-heading">
+      <p class="eyebrow">Venue network</p>
+      <h2>Professional venue discovery with the personality of Britain’s best-loved sporting destinations.</h2>
+    </div>
+    <div class="intro-grid">
+      <div class="intro-copy">
+        <p class="lede">
+          Stadium Experience is a not-for-profit marketing collaboration of football, rugby and
+          cricket club venues across the UK. The network brings together iconic venues that are
+          well suited to conferences, meetings, exhibitions, dinners and celebrations.
+        </p>
+        <p class="lede">
+          Search by location and event type, review capacities quickly and move straight into a
+          commission-free enquiry with the right venue team.
+        </p>
+        <div class="intro-actions">
+          <a class="button button-primary" href="/venues/">Find a venue</a>
+          <a class="button button-secondary" href="/venues/venue-guide/">Get the venue guide</a>
+        </div>
+      </div>
+      <div class="intro-aside">
+        <p class="eyebrow">Why planners use Stadium Experience</p>
+        <ul class="stat-grid">
+          {stats.map((stat) => (
+            <li>
+              <strong>{stat.value}</strong>
+              <span>{stat.label}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-tight">
+    <div class="proof-grid">
+      {homepageSections.map((section) => (
+        <article class="proof-card">
+          <p class="eyebrow">{section.eyebrow}</p>
+          <h3>{section.title}</h3>
+          <p>{section.body}</p>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-heading section-heading-with-action">
+      <div>
+        <p class="eyebrow">Featured venues</p>
+        <h2>Explore standout stadium venues across the network.</h2>
+      </div>
+      <a class="text-link" href="/venues/">Browse all venues</a>
+    </div>
+    <div class="card-grid venue-grid">
+      {featuredVenues.map((venue) => (
+        <article class="card venue-card">
+          <div class="venue-card-image" style={`background-image:url('${venue.heroImage}')`}></div>
+          <div class="venue-topline">
+            <span>{venue.city}</span>
+            <span>{venue.region}</span>
+          </div>
+          <h3>{venue.name}</h3>
+          <p>{venue.summary}</p>
+          <p class="capacity">{venue.guestCapacityLabel}</p>
+          <ul class="tag-list" aria-label={`${venue.name} tags`}>
+            {venue.eventTypes.map((tag) => (
+              <li>{tag}</li>
+            ))}
+          </ul>
+          <a class="text-link" href={`/venues/${venue.slug}/`}>See our venue</a>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="promo-grid">
+      {homepagePromoCards.map((card) => (
+        <article class="promo-card home-panel">
+          <p class="eyebrow">Partnership opportunities</p>
+          <h2>{card.title}</h2>
+          <p>{card.body}</p>
+          <a class="button button-primary" href={card.href}>{card.cta}</a>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <section class="section section-tight">
+    <div class="section-heading">
+      <p class="eyebrow">Quick links</p>
+      <h2>Explore the most popular routes through the site.</h2>
+    </div>
+    <div class="card-grid cta-tile-grid">
+      {homepageTiles.map((tile) => (
+        <article class="cta-tile">
+          <img class="cta-icon-image" src={tile.icon} alt="" />
+          <h3>{tile.title}</h3>
+          <a class="text-link" href={tile.href}>{tile.cta}</a>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="newsletter-band">
+      <div>
+        <p class="eyebrow">Stay informed</p>
+        <h2>Receive the latest venue news and the twice-yearly Stadium Venue Guide.</h2>
+        <p>Keep up with venue launches, seasonal campaigns and updates from across the network.</p>
+      </div>
+      <a class="button button-primary" href="/latest-news/">Sign up today</a>
+    </div>
+  </section>
+
+  <section class="section section-tight">
+    <div class="pill-grid">
+      {eventCategories.map((category) => (
+        <a class="pill" href="/venues/">{category}</a>
+      ))}
+    </div>
+  </section>
+  <script>
+    const heroSlider = document.querySelector("[data-hero-slider]");
+    const heroSlides = Array.from(document.querySelectorAll("[data-hero-slide]"));
+    const heroDots = Array.from(document.querySelectorAll("[data-hero-dot]"));
+    const prevButton = document.querySelector("[data-hero-prev]");
+    const nextButton = document.querySelector("[data-hero-next]");
+    let activeSlide = 0;
+    let heroTimer;
+
+    const setSlide = (index) => {
+      activeSlide = (index + heroSlides.length) % heroSlides.length;
+      heroSlides.forEach((slide, slideIndex) => {
+        const isActive = slideIndex === activeSlide;
+        slide.classList.toggle("is-active", isActive);
+        slide.setAttribute("aria-hidden", isActive ? "false" : "true");
+      });
+      heroDots.forEach((dot, dotIndex) => {
+        dot.classList.toggle("hero-dot-active", dotIndex === activeSlide);
+      });
+    };
+
+    const restartTimer = () => {
+      window.clearInterval(heroTimer);
+      heroTimer = window.setInterval(() => setSlide(activeSlide + 1), 5000);
+    };
+
+    prevButton?.addEventListener("click", () => {
+      setSlide(activeSlide - 1);
+      restartTimer();
+    });
+
+    nextButton?.addEventListener("click", () => {
+      setSlide(activeSlide + 1);
+      restartTimer();
+    });
+
+    heroDots.forEach((dot, index) => {
+      dot.addEventListener("click", () => {
+        setSlide(index);
+        restartTimer();
+      });
+    });
+
+    heroSlider?.addEventListener("mouseenter", () => window.clearInterval(heroTimer));
+    heroSlider?.addEventListener("mouseleave", restartTimer);
+    restartTimer();
+  </script>
+</BaseLayout>

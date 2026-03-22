@@ -1,0 +1,42 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import { advertisingHighlights, supplierBenefits } from "../../../data/site";
+---
+
+<BaseLayout
+  title="Advertising"
+  description="Advertising and partnership opportunities across the Stadium Experience network."
+>
+  <section class="page-hero">
+    <p class="eyebrow">Suppliers</p>
+    <h1>Advertising opportunities that put suppliers in front of stadium venues.</h1>
+    <p class="lede">
+      Reach decision makers through campaigns, meetings, supplier opportunities and awards-related
+      promotion in a way that feels useful to the network.
+    </p>
+  </section>
+
+  <section class="section section-tight">
+    <div class="detail-grid venue-detail-grid">
+      <article class="card info-card">
+        <p class="eyebrow">Why advertise</p>
+        <h2>Connect your brand with stadium venues.</h2>
+        <ul class="feature-list">
+          {advertisingHighlights.map((item) => (
+            <li>{item}</li>
+          ))}
+        </ul>
+      </article>
+      <article class="card info-card">
+        <p class="eyebrow">Best for</p>
+        <h2>Supplier visibility with a practical route in</h2>
+        <ul class="tag-list tag-list-plain">
+          {supplierBenefits.map((item) => (
+            <li>{item}</li>
+          ))}
+        </ul>
+        <a class="button button-primary" href="/enquire/">Discuss advertising</a>
+      </article>
+    </div>
+  </section>
+</BaseLayout>

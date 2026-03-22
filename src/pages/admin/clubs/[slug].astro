@@ -1,0 +1,1264 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Edit Club" description="Edit and publish Stadium Experience club pages." chrome="admin">
+  <section class="page-hero page-hero-tight">
+    <p class="eyebrow">Admin</p>
+    <h1>Edit club page</h1>
+    <p class="lede">
+      Build the page in clear sections, preview it as you go, and only publish when you are happy
+      for it to appear on the website.
+    </p>
+  </section>
+
+  <section class="section section-tight">
+    <div class="admin-gate" data-admin-gate>
+      <div class="directory-message-card" data-admin-loading>
+        <p class="eyebrow">Checking access</p>
+        <h3>Verifying your session.</h3>
+        <p>Please wait while we confirm your admin login.</p>
+      </div>
+
+      <div class="directory-message-card" data-admin-denied hidden>
+        <p class="eyebrow">Sign-in required</p>
+        <h3>You need to sign in before accessing the admin area.</h3>
+        <p><a class="text-link" href="/admin/login/">Go to admin login</a></p>
+      </div>
+
+      <div class="admin-dashboard" data-admin-ready hidden>
+        <div class="admin-toolbar">
+          <div>
+            <p class="eyebrow">Club editor</p>
+            <h2 class="club-section-title" data-editor-heading>Loading club</h2>
+            <p class="admin-user-email" data-admin-email></p>
+          </div>
+          <div class="admin-toolbar-actions">
+            <a class="button button-secondary" href="/admin/">Back to admin</a>
+            <button class="button button-secondary" type="button" data-admin-signout>Sign out</button>
+          </div>
+        </div>
+
+        <div class="admin-editor-workspace">
+          <div class="admin-editor-main">
+            <div class="card admin-card admin-editor-shell">
+              <div class="admin-editor-meta">
+                <div>
+                  <p class="eyebrow">Page workflow</p>
+                  <h3 data-editor-meta-title>Draft club page</h3>
+                </div>
+                <span class="admin-status-pill is-draft" data-editor-status>Draft</span>
+              </div>
+
+              <div class="admin-guidance-card admin-guidance-card-rich">
+                <div>
+                  <p class="eyebrow">Editing made simpler</p>
+                  <h3>Work through the page like a WordPress editor.</h3>
+                </div>
+                <ol class="admin-guidance-list">
+                  <li>Start with the page title, venue name and main photo.</li>
+                  <li>Open only the sections you want to work on.</li>
+                  <li>Use the add buttons to create facts, spaces, events and links.</li>
+                  <li>Check the live preview on the right as you edit.</li>
+                  <li>Save as a draft or publish when everything looks ready.</li>
+                </ol>
+              </div>
+
+              <div class="admin-block-toolbar">
+                <button class="button button-secondary button-compact" type="button" data-open-section="basic">Edit page title</button>
+                <button class="button button-secondary button-compact" type="button" data-open-section="content">Edit overview</button>
+                <button class="button button-secondary button-compact" type="button" data-open-section="planning">Add planning facts</button>
+                <button class="button button-secondary button-compact" type="button" data-open-section="experiences">Add experiences</button>
+                <button class="button button-secondary button-compact" type="button" data-open-section="contact">Edit contacts</button>
+              </div>
+
+              <p class="admin-auth-status" data-editor-status-message></p>
+
+              <form class="admin-editor-form" data-editor-form>
+                <details class="admin-section-block" data-section-id="basic" open>
+                  <summary class="admin-section-summary">
+                    <span class="admin-section-summary-copy">
+                      <span class="eyebrow">Section 1</span>
+                      <strong>Page basics</strong>
+                      <small>Title, venue name, summary and the images that shape the top of the page.</small>
+                    </span>
+                    <span class="admin-section-toggle">Open</span>
+                  </summary>
+
+                  <div class="admin-section-body">
+                    <div class="admin-form-grid">
+                      <label>
+                        Club name
+                        <input type="text" name="club_name" required />
+                      </label>
+
+                      <label>
+                        Venue name
+                        <input type="text" name="venue_name" />
+                      </label>
+
+                      <label class="full-width">
+                        Short summary
+                        <input type="text" name="summary" placeholder="A short line under the title to describe the venue." />
+                      </label>
+
+                      <label class="full-width">
+                        Address
+                        <textarea name="address" rows="3" placeholder="Full venue address"></textarea>
+                      </label>
+                    </div>
+
+                    <div class="admin-media-grid">
+                      <div class="admin-media-card">
+                        <div class="admin-media-preview" data-image-preview="crest_url">
+                          <span>No crest added yet</span>
+                        </div>
+                        <label>
+                          Club crest image
+                          <input type="url" name="crest_url" placeholder="Paste the crest image address" data-image-field="crest_url" />
+                          <span class="admin-field-help">This is used in the header and club listings.</span>
+                        </label>
+                      </div>
+
+                      <div class="admin-media-card">
+                        <div class="admin-media-preview admin-media-preview-wide" data-image-preview="hero_image_url">
+                          <span>No top page image added yet</span>
+                        </div>
+                        <label>
+                          Top page image
+                          <input type="url" name="hero_image_url" placeholder="Paste the main page image address" data-image-field="hero_image_url" />
+                          <span class="admin-field-help">This becomes the large image at the top of the club page.</span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </details>
+
+                <details class="admin-section-block" data-section-id="content" open>
+                  <summary class="admin-section-summary">
+                    <span class="admin-section-summary-copy">
+                      <span class="eyebrow">Section 2</span>
+                      <strong>Overview content</strong>
+                      <small>The main introduction visitors will read when they land on the page.</small>
+                    </span>
+                    <span class="admin-section-toggle">Open</span>
+                  </summary>
+
+                  <div class="admin-section-body">
+                    <div class="admin-form-grid">
+                      <label class="full-width">
+                        Overview heading
+                        <input type="text" name="introduction_heading" placeholder="Overview" />
+                      </label>
+
+                      <label class="full-width">
+                        Overview text
+                        <textarea name="introduction_paragraphs" rows="10" placeholder="Write the main page introduction here. Use a blank line to start a new paragraph."></textarea>
+                        <span class="admin-field-help">Tip: press enter twice to start a new paragraph.</span>
+                      </label>
+                    </div>
+                  </div>
+                </details>
+
+                <details class="admin-section-block" data-section-id="planning">
+                  <summary class="admin-section-summary">
+                    <span class="admin-section-summary-copy">
+                      <span class="eyebrow">Section 3</span>
+                      <strong>Planning details</strong>
+                      <small>Useful facts, spaces and event types to help planners scan the page quickly.</small>
+                    </span>
+                    <span class="admin-section-toggle">Open</span>
+                  </summary>
+
+                  <div class="admin-section-body">
+                    <div class="admin-block-panel">
+                      <div class="admin-block-panel-heading">
+                        <div>
+                          <h4>Planning facts</h4>
+                          <p>Use short labels and values like Capacity, Location or Parking.</p>
+                        </div>
+                        <button class="button button-secondary button-compact admin-add-row" type="button" data-add-row="key_facts">Add planning fact</button>
+                      </div>
+                      <div class="admin-repeater" data-repeater="key_facts"></div>
+                    </div>
+
+                    <div class="admin-block-panel">
+                      <div class="admin-block-panel-heading">
+                        <div>
+                          <h4>Spaces</h4>
+                          <p>Add the rooms, boxes or suites that planners can book.</p>
+                        </div>
+                        <button class="button button-secondary button-compact admin-add-row" type="button" data-add-row="spaces">Add space</button>
+                      </div>
+                      <div class="admin-repeater" data-repeater="spaces"></div>
+                    </div>
+
+                    <div class="admin-block-panel">
+                      <div class="admin-block-panel-heading">
+                        <div>
+                          <h4>Event types</h4>
+                          <p>Show the kinds of events the venue is suited to.</p>
+                        </div>
+                        <button class="button button-secondary button-compact admin-add-row" type="button" data-add-row="events">Add event type</button>
+                      </div>
+                      <div class="admin-repeater" data-repeater="events"></div>
+                    </div>
+                  </div>
+                </details>
+
+                <details class="admin-section-block" data-section-id="contact">
+                  <summary class="admin-section-summary">
+                    <span class="admin-section-summary-copy">
+                      <span class="eyebrow">Section 4</span>
+                      <strong>Links and contact details</strong>
+                      <small>Buttons, website links, contact details and social links for visitors.</small>
+                    </span>
+                    <span class="admin-section-toggle">Open</span>
+                  </summary>
+
+                  <div class="admin-section-body">
+                    <div class="admin-form-grid">
+                      <label>
+                        Website button text
+                        <input type="text" name="website_url" placeholder="Official website" />
+                      </label>
+
+                      <label>
+                        Website link
+                        <input type="url" name="website_href" placeholder="Paste the website page address" />
+                      </label>
+
+                      <label>
+                        Tour booking link
+                        <input type="url" name="tour_booking_href" placeholder="Paste the tour booking page address" />
+                      </label>
+
+                      <label>
+                        Google map embed link
+                        <input type="url" name="map_embed_url" placeholder="Paste the Google Maps embed link" />
+                      </label>
+
+                      <label>
+                        Non-matchday phone
+                        <input type="text" name="non_matchday_phone" />
+                      </label>
+
+                      <label>
+                        Non-matchday email
+                        <input type="email" name="non_matchday_email" />
+                      </label>
+
+                      <label>
+                        Matchday phone
+                        <input type="text" name="matchday_phone" />
+                      </label>
+
+                      <label>
+                        Matchday email
+                        <input type="email" name="matchday_email" />
+                      </label>
+                    </div>
+
+                    <div class="admin-block-panel">
+                      <div class="admin-block-panel-heading">
+                        <div>
+                          <h4>Social and useful links</h4>
+                          <p>Add each link separately so visitors see clear buttons and labels.</p>
+                        </div>
+                        <button class="button button-secondary button-compact admin-add-row" type="button" data-add-row="social_links">Add link</button>
+                      </div>
+                      <div class="admin-repeater" data-repeater="social_links"></div>
+                    </div>
+                  </div>
+                </details>
+
+                <details class="admin-section-block" data-section-id="experiences">
+                  <summary class="admin-section-summary">
+                    <span class="admin-section-summary-copy">
+                      <span class="eyebrow">Section 5</span>
+                      <strong>Special experiences</strong>
+                      <small>Optional content for Christmas, play-on-pitch and tours.</small>
+                    </span>
+                    <span class="admin-section-toggle">Open</span>
+                  </summary>
+
+                  <div class="admin-section-body">
+                    <div class="admin-media-grid admin-media-grid-three">
+                      <div class="admin-media-card">
+                        <div class="admin-media-preview admin-media-preview-wide" data-image-preview="christmas_image_url">
+                          <span>No Christmas image added yet</span>
+                        </div>
+                        <label>
+                          Christmas image
+                          <input type="url" name="christmas_image_url" placeholder="Paste the Christmas image address" data-image-field="christmas_image_url" />
+                        </label>
+                      </div>
+
+                      <div class="admin-media-card">
+                        <div class="admin-media-preview admin-media-preview-wide" data-image-preview="play_on_pitch_image_url">
+                          <span>No play-on-pitch image added yet</span>
+                        </div>
+                        <label>
+                          Play-on-pitch image
+                          <input type="url" name="play_on_pitch_image_url" placeholder="Paste the play-on-pitch image address" data-image-field="play_on_pitch_image_url" />
+                        </label>
+                      </div>
+                    </div>
+
+                    <div class="admin-form-grid">
+                      <label class="full-width">
+                        Christmas content
+                        <textarea name="christmas_text" rows="5" placeholder="Describe the Christmas party offer or festive events."></textarea>
+                      </label>
+
+                      <label class="full-width">
+                        Play-on-pitch content
+                        <textarea name="play_on_pitch_text" rows="5" placeholder="Describe the play-on-pitch experience."></textarea>
+                      </label>
+
+                      <label class="full-width">
+                        Tours content
+                        <textarea name="tours_text" rows="5" placeholder="Describe the tours or visitor experience."></textarea>
+                      </label>
+                    </div>
+                  </div>
+                </details>
+
+                <div class="admin-editor-actions admin-editor-actions-sticky">
+                  <div class="admin-publish-panel">
+                    <strong data-publish-status-label>Draft page</strong>
+                    <span data-publish-status-note>This page only appears on the public website after you publish it.</span>
+                  </div>
+                  <div class="admin-editor-actions-group">
+                    <a class="button button-secondary" href="/admin/">Back to admin</a>
+                    <button class="button button-secondary" type="button" data-save-draft>Save draft</button>
+                    <button class="button button-primary" type="button" data-publish-club>Publish page</button>
+                    <button class="button button-secondary" type="button" data-discard-draft hidden>Discard draft changes</button>
+                    <button class="button button-danger" type="button" data-delete-club>Delete club</button>
+                    <a class="text-link" href="#" data-live-link target="_blank" rel="noreferrer" hidden>View live club page</a>
+                  </div>
+                  <p class="admin-inline-status" data-inline-save-status aria-live="polite"></p>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <aside class="admin-editor-preview">
+            <div class="card admin-card admin-preview-shell">
+              <div class="admin-preview-head">
+                <div>
+                  <p class="eyebrow">Live preview</p>
+                  <h3>How the page is shaping up</h3>
+                </div>
+                <span class="admin-preview-status" data-preview-status>Draft preview</span>
+              </div>
+
+              <div class="admin-preview-canvas">
+                <section class="admin-preview-hero" data-preview-hero>
+                  <div class="admin-preview-overlay"></div>
+                  <div class="admin-preview-hero-card">
+                    <div class="admin-preview-crest" data-preview-crest>
+                      <span data-preview-initials>SE</span>
+                    </div>
+                    <p class="eyebrow">Club page</p>
+                    <h2 data-preview-title>Club name</h2>
+                    <p class="admin-preview-venue" data-preview-venue>Venue name</p>
+                    <p class="admin-preview-summary" data-preview-summary>
+                      Add a short summary to see how the top of the page will read.
+                    </p>
+                  </div>
+                </section>
+
+                <section class="admin-preview-card">
+                  <div class="admin-preview-card-heading">
+                    <h4>Overview</h4>
+                  </div>
+                  <div class="admin-preview-copy" data-preview-overview>
+                    <p>Your overview text will appear here as you write it.</p>
+                  </div>
+                </section>
+
+                <section class="admin-preview-card">
+                  <div class="admin-preview-card-heading">
+                    <h4>Planning facts</h4>
+                  </div>
+                  <div class="admin-preview-facts" data-preview-facts>
+                    <p class="admin-preview-empty">Add planning facts to preview them here.</p>
+                  </div>
+                </section>
+
+                <section class="admin-preview-card">
+                  <div class="admin-preview-card-heading">
+                    <h4>Special sections</h4>
+                  </div>
+                  <div class="admin-preview-sections" data-preview-special-sections>
+                    <p class="admin-preview-empty">Christmas, play-on-pitch and tours content will preview here.</p>
+                  </div>
+                </section>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    import { getBrowserSupabase } from "../../../lib/supabase-browser";
+    import { joinParagraphs, splitParagraphs } from "../../../lib/club-page-admin";
+    import { getClubSizeForClub, getStadiumExperienceClubs, saveClubSizeToDirectory } from "../../../lib/stadiumexperience-clubs";
+
+    const slug = window.location.pathname.split("/").filter(Boolean).pop();
+    const supabase = getBrowserSupabase();
+    const gate = document.querySelector("[data-admin-gate]");
+    const loading = document.querySelector("[data-admin-loading]");
+    const denied = document.querySelector("[data-admin-denied]");
+    const ready = document.querySelector("[data-admin-ready]");
+    const emailElement = document.querySelector("[data-admin-email]");
+    const signOutButton = document.querySelector("[data-admin-signout]");
+    const editorHeading = document.querySelector("[data-editor-heading]");
+    const editorMetaTitle = document.querySelector("[data-editor-meta-title]");
+    const editorStatus = document.querySelector("[data-editor-status]");
+    const editorStatusMessage = document.querySelector("[data-editor-status-message]");
+    const inlineSaveStatus = document.querySelector("[data-inline-save-status]");
+    const editorForm = document.querySelector("[data-editor-form]");
+    const liveLink = document.querySelector("[data-live-link]");
+    const saveDraftButton = document.querySelector("[data-save-draft]");
+    const publishButton = document.querySelector("[data-publish-club]");
+    const discardDraftButton = document.querySelector("[data-discard-draft]");
+    const deleteButton = document.querySelector("[data-delete-club]");
+    const keyFactsList = document.querySelector("[data-repeater='key_facts']");
+    const spacesList = document.querySelector("[data-repeater='spaces']");
+    const eventsList = document.querySelector("[data-repeater='events']");
+    const socialLinksList = document.querySelector("[data-repeater='social_links']");
+    const previewStatus = document.querySelector("[data-preview-status]");
+    const previewHero = document.querySelector("[data-preview-hero]");
+    const previewCrest = document.querySelector("[data-preview-crest]");
+    const previewInitials = document.querySelector("[data-preview-initials]");
+    const previewTitle = document.querySelector("[data-preview-title]");
+    const previewVenue = document.querySelector("[data-preview-venue]");
+    const previewSummary = document.querySelector("[data-preview-summary]");
+    const previewOverview = document.querySelector("[data-preview-overview]");
+    const previewFacts = document.querySelector("[data-preview-facts]");
+    const previewSpecialSections = document.querySelector("[data-preview-special-sections]");
+    const publishStatusLabel = document.querySelector("[data-publish-status-label]");
+    const publishStatusNote = document.querySelector("[data-publish-status-note]");
+    let currentSlug = slug;
+    let currentClubSize = null;
+    let sizeRows = [];
+    let currentPublished = false;
+    let hasDraftChanges = false;
+    let supportsDraftWorkflow = true;
+
+    const setState = (state) => {
+      loading.hidden = state !== "loading";
+      denied.hidden = state !== "denied";
+      ready.hidden = state !== "ready";
+    };
+
+    const redirectToLogin = () => {
+      window.location.href = "/admin/login/";
+    };
+
+    const setSaveMessage = (message, isError = false) => {
+      if (!editorStatusMessage) return;
+      editorStatusMessage.textContent = message;
+      editorStatusMessage.classList.toggle("is-error", isError);
+    };
+
+    const setInlineSaveMessage = (message, isError = false) => {
+      if (!inlineSaveStatus) return;
+      inlineSaveStatus.textContent = message;
+      inlineSaveStatus.classList.toggle("is-error", isError);
+    };
+
+    const setPublishedUi = (published, slugValue, draftExists = false) => {
+      currentPublished = Boolean(published);
+      hasDraftChanges = Boolean(draftExists);
+
+      if (editorStatus) {
+        editorStatus.textContent = published ? (draftExists ? "Published + draft" : "Published") : "Draft";
+        editorStatus.classList.toggle("is-published", published);
+        editorStatus.classList.toggle("is-draft", !published);
+      }
+
+      if (previewStatus) {
+        previewStatus.textContent = published ? (draftExists ? "Draft preview of live page" : "Published preview") : "Draft preview";
+      }
+
+      if (publishStatusLabel) {
+        publishStatusLabel.textContent = published ? (draftExists ? "Live page with saved draft" : "Published page") : "Draft page";
+      }
+
+      if (publishStatusNote) {
+        publishStatusNote.textContent = published
+          ? draftExists
+            ? "Your saved edits are still only in draft. The public page stays unchanged until you publish."
+            : "This page is live on the public website."
+          : "This page only appears on the public website after you publish it.";
+      }
+
+      if (discardDraftButton) {
+        discardDraftButton.hidden = !(published && draftExists);
+      }
+
+      if (liveLink && slugValue) {
+        liveLink.hidden = !published;
+        liveLink.href = `/clubs/${slugValue}/`;
+      }
+    };
+
+    const assignField = (name, value) => {
+      const field = editorForm?.elements.namedItem(name);
+      if (field && "value" in field) {
+        field.value = value ?? "";
+      }
+    };
+
+    const editorFieldNames = [
+      "club_name",
+      "crest_url",
+      "venue_name",
+      "summary",
+      "address",
+      "website_url",
+      "website_href",
+      "tour_booking_href",
+      "non_matchday_phone",
+      "non_matchday_email",
+      "matchday_phone",
+      "matchday_email",
+      "introduction_heading",
+      "christmas_text",
+      "play_on_pitch_text",
+      "tours_text",
+      "map_embed_url",
+      "hero_image_url",
+      "christmas_image_url",
+      "play_on_pitch_image_url"
+    ];
+
+    const editorBaseSelectClause = `
+      slug,
+      club_name,
+      crest_url,
+      venue_name,
+      summary,
+      address,
+      website_url,
+      website_href,
+      social_links,
+      tour_booking_href,
+      non_matchday_phone,
+      non_matchday_email,
+      matchday_phone,
+      matchday_email,
+      introduction_heading,
+      introduction_paragraphs,
+      spaces,
+      events,
+      christmas_text,
+      play_on_pitch_text,
+      tours_text,
+      key_facts,
+      map_embed_url,
+      hero_image_url,
+      christmas_image_url,
+      play_on_pitch_image_url,
+      published,
+      created_at,
+      updated_at
+    `;
+
+    const editorSelectClause = `
+      ${editorBaseSelectClause},
+      draft_content,
+      draft_updated_at
+    `;
+
+    const cloneJson = (value) => JSON.parse(JSON.stringify(value));
+
+    const fetchClubEditorRecord = async (clubSlug) => {
+      const primaryQuery = await supabase
+        .from("club_pages")
+        .select(editorSelectClause)
+        .eq("slug", clubSlug)
+        .maybeSingle();
+
+      if (!primaryQuery.error) {
+        supportsDraftWorkflow = true;
+        return primaryQuery.data;
+      }
+
+      supportsDraftWorkflow = false;
+
+      const fallbackQuery = await supabase
+        .from("club_pages")
+        .select(editorBaseSelectClause)
+        .eq("slug", clubSlug)
+        .maybeSingle();
+
+      if (fallbackQuery.error) {
+        throw new Error(fallbackQuery.error.message);
+      }
+
+      return fallbackQuery.data ? { ...fallbackQuery.data, draft_content: null, draft_updated_at: null } : null;
+    };
+
+    const getDraftContentFromPayload = (payload) => {
+      const draft = {};
+
+      editorFieldNames.forEach((fieldName) => {
+        draft[fieldName] = payload[fieldName] || null;
+      });
+
+      draft.social_links = cloneJson(payload.social_links);
+      draft.introduction_paragraphs = cloneJson(payload.introduction_paragraphs);
+      draft.spaces = cloneJson(payload.spaces);
+      draft.events = cloneJson(payload.events);
+      draft.key_facts = cloneJson(payload.key_facts);
+
+      return draft;
+    };
+
+    const mergeClubWithDraft = (club) => {
+      if (!club?.draft_content || typeof club.draft_content !== "object") {
+        return { ...club };
+      }
+
+      return {
+        ...club,
+        ...club.draft_content
+      };
+    };
+
+    const repeaterConfig = {
+      key_facts: {
+        list: keyFactsList,
+        fields: [
+          { name: "label", label: "Label", placeholder: "Capacity" },
+          { name: "value", label: "Value", placeholder: "500" }
+        ]
+      },
+      spaces: {
+        list: spacesList,
+        fields: [
+          { name: "title", label: "Space name", placeholder: "Executive Box" },
+          { name: "body", label: "Description", placeholder: "Suitable for smaller private meetings." }
+        ]
+      },
+      events: {
+        list: eventsList,
+        fields: [
+          { name: "title", label: "Event type", placeholder: "Conferences" },
+          { name: "body", label: "Description", placeholder: "Suitable for larger business events." }
+        ]
+      },
+      social_links: {
+        list: socialLinksList,
+        fields: [
+          { name: "label", label: "Link name", placeholder: "Instagram" },
+          { name: "href", label: "Web address", placeholder: "https://..." }
+        ]
+      }
+    };
+
+    const getTextValue = (name) => {
+      const field = editorForm?.elements.namedItem(name);
+      return typeof field?.value === "string" ? field.value.trim() : "";
+    };
+
+    const getInitials = (value) =>
+      value
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((item) => item[0]?.toUpperCase() ?? "")
+        .join("") || "SE";
+
+    const setPreviewImage = (previewElement, url, fallbackText) => {
+      if (!previewElement) return;
+
+      previewElement.classList.remove("has-image");
+      previewElement.replaceChildren();
+
+      if (url) {
+        const image = document.createElement("img");
+        image.src = url;
+        image.alt = "";
+        image.loading = "lazy";
+        image.addEventListener("error", () => {
+          previewElement.classList.remove("has-image");
+          previewElement.replaceChildren(Object.assign(document.createElement("span"), { textContent: fallbackText }));
+        });
+        previewElement.classList.add("has-image");
+        previewElement.appendChild(image);
+        return;
+      }
+
+      const fallback = document.createElement("span");
+      fallback.textContent = fallbackText;
+      previewElement.appendChild(fallback);
+    };
+
+    const createRepeaterRow = (type, values = {}) => {
+      const config = repeaterConfig[type];
+
+      if (!config?.list) {
+        return null;
+      }
+
+      const row = document.createElement("div");
+      row.className = "admin-repeater-row";
+
+      const fields = document.createElement("div");
+      fields.className = "admin-repeater-fields";
+
+      config.fields.forEach((fieldConfig) => {
+        const label = document.createElement("label");
+        label.className = "admin-repeater-field";
+        label.textContent = fieldConfig.label;
+
+        const input = document.createElement("input");
+        input.type = fieldConfig.name === "href" ? "url" : "text";
+        input.name = `${type}_${fieldConfig.name}`;
+        input.placeholder = fieldConfig.placeholder;
+        input.value = typeof values[fieldConfig.name] === "string" ? values[fieldConfig.name] : "";
+        input.addEventListener("input", renderPreview);
+
+        label.appendChild(input);
+        fields.appendChild(label);
+      });
+
+      const removeButton = document.createElement("button");
+      removeButton.type = "button";
+      removeButton.className = "button button-secondary button-compact admin-remove-row";
+      removeButton.textContent = "Remove";
+      removeButton.addEventListener("click", () => {
+        row.remove();
+        renderPreview();
+      });
+
+      row.append(fields, removeButton);
+      return row;
+    };
+
+    const renderRepeater = (type, items = []) => {
+      const config = repeaterConfig[type];
+
+      if (!config?.list) {
+        return;
+      }
+
+      config.list.replaceChildren();
+      const safeItems = Array.isArray(items) && items.length ? items : [];
+
+      safeItems.forEach((item) => {
+        const row = createRepeaterRow(type, item);
+        if (row) {
+          config.list.appendChild(row);
+        }
+      });
+    };
+
+    const readRepeater = (type) => {
+      const config = repeaterConfig[type];
+
+      if (!config?.list) {
+        return [];
+      }
+
+      return Array.from(config.list.querySelectorAll(".admin-repeater-row"))
+        .map((row) => {
+          const entry = {};
+
+          config.fields.forEach((fieldConfig) => {
+            const input = row.querySelector(`[name='${type}_${fieldConfig.name}']`);
+            const value = typeof input?.value === "string" ? input.value.trim() : "";
+            entry[fieldConfig.name] = value;
+          });
+
+          const hasContent = config.fields.every((fieldConfig) => entry[fieldConfig.name]);
+          return hasContent ? entry : null;
+        })
+        .filter(Boolean);
+    };
+
+    const renderPreview = () => {
+      const clubName = getTextValue("club_name");
+      const venueName = getTextValue("venue_name");
+      const summary = getTextValue("summary");
+      const overviewHeading = getTextValue("introduction_heading") || "Overview";
+      const overviewParagraphs = splitParagraphs(getTextValue("introduction_paragraphs"));
+      const crestUrl = getTextValue("crest_url");
+      const heroImageUrl = getTextValue("hero_image_url");
+      const facts = readRepeater("key_facts");
+      const christmasText = getTextValue("christmas_text");
+      const playOnPitchText = getTextValue("play_on_pitch_text");
+      const toursText = getTextValue("tours_text");
+
+      if (previewTitle) {
+        previewTitle.textContent = clubName || "Club name";
+      }
+
+      if (previewVenue) {
+        previewVenue.textContent = venueName || "Venue name";
+      }
+
+      if (previewSummary) {
+        previewSummary.textContent = summary || "Add a short summary to see how the top of the page will read.";
+      }
+
+      if (previewInitials) {
+        previewInitials.textContent = getInitials(clubName);
+      }
+
+      if (previewHero) {
+        previewHero.style.setProperty(
+          "--preview-hero-image",
+          heroImageUrl
+            ? `linear-gradient(135deg, rgba(8, 18, 10, 0.68), rgba(8, 18, 10, 0.26)), url("${heroImageUrl}")`
+            : "linear-gradient(135deg, rgba(18, 60, 51, 0.96), rgba(61, 79, 13, 0.92))"
+        );
+      }
+
+      setPreviewImage(previewCrest, crestUrl, getInitials(clubName));
+
+      if (previewOverview) {
+        previewOverview.replaceChildren();
+        const heading = document.createElement("strong");
+        heading.textContent = overviewHeading;
+        previewOverview.appendChild(heading);
+
+        if (!overviewParagraphs.length) {
+          const paragraph = document.createElement("p");
+          paragraph.textContent = "Your overview text will appear here as you write it.";
+          previewOverview.appendChild(paragraph);
+        } else {
+          overviewParagraphs.slice(0, 2).forEach((entry) => {
+            const paragraph = document.createElement("p");
+            paragraph.textContent = entry;
+            previewOverview.appendChild(paragraph);
+          });
+        }
+      }
+
+      if (previewFacts) {
+        previewFacts.replaceChildren();
+
+        if (!facts.length) {
+          const empty = document.createElement("p");
+          empty.className = "admin-preview-empty";
+          empty.textContent = "Add planning facts to preview them here.";
+          previewFacts.appendChild(empty);
+        } else {
+          facts.slice(0, 4).forEach((fact) => {
+            const card = document.createElement("div");
+            card.className = "admin-preview-fact";
+
+            const label = document.createElement("span");
+            label.textContent = fact.label;
+
+            const value = document.createElement("strong");
+            value.textContent = fact.value;
+
+            card.append(label, value);
+            previewFacts.appendChild(card);
+          });
+        }
+      }
+
+      if (previewSpecialSections) {
+        previewSpecialSections.replaceChildren();
+        const sections = [
+          christmasText ? { title: "Christmas", body: christmasText } : null,
+          playOnPitchText ? { title: "Play on pitch", body: playOnPitchText } : null,
+          toursText ? { title: "Tours", body: toursText } : null
+        ].filter(Boolean);
+
+        if (!sections.length) {
+          const empty = document.createElement("p");
+          empty.className = "admin-preview-empty";
+          empty.textContent = "Christmas, play-on-pitch and tours content will preview here.";
+          previewSpecialSections.appendChild(empty);
+        } else {
+          sections.forEach((section) => {
+            const item = document.createElement("div");
+            item.className = "admin-preview-section";
+
+            const title = document.createElement("strong");
+            title.textContent = section.title;
+
+            const body = document.createElement("p");
+            body.textContent = section.body;
+
+            item.append(title, body);
+            previewSpecialSections.appendChild(item);
+          });
+        }
+      }
+    };
+
+    document.querySelectorAll("[data-add-row]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const type = button.getAttribute("data-add-row");
+        const row = createRepeaterRow(type);
+        const config = repeaterConfig[type];
+
+        if (row && config?.list) {
+          config.list.appendChild(row);
+          renderPreview();
+        }
+      });
+    });
+
+    document.querySelectorAll("[data-open-section]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const sectionId = button.getAttribute("data-open-section");
+        const section = document.querySelector(`[data-section-id='${sectionId}']`);
+
+        if (section instanceof HTMLDetailsElement) {
+          section.open = true;
+          section.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      });
+    });
+
+    document.querySelectorAll("[data-image-field]").forEach((input) => {
+      input.addEventListener("input", () => {
+        const fieldName = input.getAttribute("name");
+        const preview = document.querySelector(`[data-image-preview='${fieldName}']`);
+        const fallbackText = fieldName === "crest_url" ? "No crest added yet" : "No image added yet";
+        setPreviewImage(preview, input.value.trim(), fallbackText);
+        renderPreview();
+      });
+    });
+
+    editorForm?.addEventListener("input", renderPreview);
+
+    const populateForm = (club) => {
+      const displayClub = mergeClubWithDraft(club);
+      const draftExists = Boolean(club.draft_updated_at && club.draft_content);
+
+      if (editorHeading) {
+        editorHeading.textContent = displayClub.club_name;
+      }
+
+      if (editorMetaTitle) {
+        editorMetaTitle.textContent = displayClub.club_name;
+      }
+
+      assignField("club_name", displayClub.club_name);
+      assignField("crest_url", displayClub.crest_url);
+      currentClubSize = getClubSizeForClub(sizeRows, club);
+      assignField("venue_name", displayClub.venue_name);
+      assignField("summary", displayClub.summary);
+      assignField("address", displayClub.address);
+      assignField("website_url", displayClub.website_url);
+      assignField("website_href", displayClub.website_href);
+      assignField("tour_booking_href", displayClub.tour_booking_href);
+      assignField("non_matchday_phone", displayClub.non_matchday_phone);
+      assignField("non_matchday_email", displayClub.non_matchday_email);
+      assignField("matchday_phone", displayClub.matchday_phone);
+      assignField("matchday_email", displayClub.matchday_email);
+      assignField("introduction_heading", displayClub.introduction_heading);
+      assignField("introduction_paragraphs", joinParagraphs(displayClub.introduction_paragraphs));
+      renderRepeater("key_facts", displayClub.key_facts);
+      renderRepeater("spaces", displayClub.spaces);
+      renderRepeater("events", displayClub.events);
+      renderRepeater("social_links", displayClub.social_links);
+      assignField("christmas_text", displayClub.christmas_text);
+      assignField("play_on_pitch_text", displayClub.play_on_pitch_text);
+      assignField("tours_text", displayClub.tours_text);
+      assignField("map_embed_url", displayClub.map_embed_url);
+      assignField("hero_image_url", displayClub.hero_image_url);
+      assignField("christmas_image_url", displayClub.christmas_image_url);
+      assignField("play_on_pitch_image_url", displayClub.play_on_pitch_image_url);
+
+      currentSlug = club.slug;
+      setPublishedUi(club.published, club.slug, draftExists);
+      setSaveMessage(
+        club.published
+          ? draftExists
+            ? "You are editing a saved draft while the live published page stays visible to the public."
+            : "This club is currently live on the public site."
+          : "This club is still safely in draft."
+      );
+
+      setPreviewImage(document.querySelector("[data-image-preview='crest_url']"), displayClub.crest_url, "No crest added yet");
+      setPreviewImage(document.querySelector("[data-image-preview='hero_image_url']"), displayClub.hero_image_url, "No top page image added yet");
+      setPreviewImage(document.querySelector("[data-image-preview='christmas_image_url']"), displayClub.christmas_image_url, "No Christmas image added yet");
+      setPreviewImage(document.querySelector("[data-image-preview='play_on_pitch_image_url']"), displayClub.play_on_pitch_image_url, "No play-on-pitch image added yet");
+      renderPreview();
+    };
+
+    const getPayload = (published) => {
+      const formData = new FormData(editorForm);
+
+      return {
+        club_name: String(formData.get("club_name") ?? "").trim(),
+        crest_url: String(formData.get("crest_url") ?? "").trim(),
+        club_size: currentClubSize,
+        venue_name: String(formData.get("venue_name") ?? "").trim(),
+        summary: String(formData.get("summary") ?? "").trim(),
+        address: String(formData.get("address") ?? "").trim(),
+        website_url: String(formData.get("website_url") ?? "").trim(),
+        website_href: String(formData.get("website_href") ?? "").trim(),
+        social_links: readRepeater("social_links"),
+        tour_booking_href: String(formData.get("tour_booking_href") ?? "").trim(),
+        non_matchday_phone: String(formData.get("non_matchday_phone") ?? "").trim(),
+        non_matchday_email: String(formData.get("non_matchday_email") ?? "").trim(),
+        matchday_phone: String(formData.get("matchday_phone") ?? "").trim(),
+        matchday_email: String(formData.get("matchday_email") ?? "").trim(),
+        introduction_heading: String(formData.get("introduction_heading") ?? "").trim(),
+        introduction_paragraphs: splitParagraphs(String(formData.get("introduction_paragraphs") ?? "")),
+        spaces: readRepeater("spaces"),
+        events: readRepeater("events"),
+        christmas_text: String(formData.get("christmas_text") ?? "").trim(),
+        play_on_pitch_text: String(formData.get("play_on_pitch_text") ?? "").trim(),
+        tours_text: String(formData.get("tours_text") ?? "").trim(),
+        key_facts: readRepeater("key_facts"),
+        map_embed_url: String(formData.get("map_embed_url") ?? "").trim(),
+        hero_image_url: String(formData.get("hero_image_url") ?? "").trim(),
+        christmas_image_url: String(formData.get("christmas_image_url") ?? "").trim(),
+        play_on_pitch_image_url: String(formData.get("play_on_pitch_image_url") ?? "").trim(),
+        published
+      };
+    };
+
+    const loadEditor = async () => {
+      if (!slug) {
+        setSaveMessage("Club slug is missing from the URL.", true);
+        return;
+      }
+
+      try {
+        const data = await fetchClubEditorRecord(slug);
+
+        if (!data) {
+          throw new Error("Unable to load this club.");
+        }
+
+        sizeRows = await getStadiumExperienceClubs(supabase);
+        currentClubSize = getClubSizeForClub(sizeRows, data);
+        populateForm(data);
+
+        if (!supportsDraftWorkflow) {
+          setSaveMessage("This editor is working in compatibility mode. To enable separate live and draft versions, add the new draft columns to club_pages in Supabase.");
+        }
+      } catch (error) {
+        setSaveMessage(error instanceof Error ? error.message : "Unable to load this club.", true);
+      }
+    };
+
+    const saveClub = async (published) => {
+      setSaveMessage(published ? "Publishing club page." : "Saving draft.");
+      setInlineSaveMessage(published ? "Publishing page..." : "Saving draft...");
+
+      try {
+        if (!supportsDraftWorkflow && currentPublished && !published) {
+          throw new Error("This club page is already published. To save separate draft changes without affecting the live page, add the draft columns to club_pages in Supabase first.");
+        }
+
+        const payload = getPayload(published);
+
+        if (!payload.club_name) {
+          throw new Error("Club name is required.");
+        }
+
+        const { club_size, ...clubPagePayload } = payload;
+        const nextSlug = payload.club_name
+          .toLowerCase()
+          .replace(/&/g, "and")
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-+|-+$/g, "");
+
+        if (nextSlug !== currentSlug) {
+          const { data: existing, error: existingError } = await supabase
+            .from("club_pages")
+            .select("slug")
+            .eq("slug", nextSlug)
+            .maybeSingle();
+
+          if (existingError) {
+            throw new Error(existingError.message);
+          }
+
+          if (existing?.slug) {
+            throw new Error("Another club already uses that slug.");
+          }
+        }
+
+        const updatePayload =
+          published
+            ? {
+                ...clubPagePayload,
+                slug: nextSlug,
+                draft_content: null,
+                draft_updated_at: null,
+                published: true,
+                updated_at: new Date().toISOString()
+              }
+            : currentPublished
+              ? {
+                  draft_content: getDraftContentFromPayload(clubPagePayload),
+                  draft_updated_at: new Date().toISOString()
+                }
+              : {
+                  ...clubPagePayload,
+                  slug: nextSlug,
+                  published: false,
+                  updated_at: new Date().toISOString()
+                };
+
+        const { error } = await supabase
+          .from("club_pages")
+          .update(updatePayload)
+          .eq("slug", currentSlug)
+          .select("slug")
+          .single();
+
+        if (error) {
+          throw new Error(error.message);
+        }
+
+        const club = await fetchClubEditorRecord(nextSlug);
+
+        if (!club) {
+          throw new Error("Unable to reload the club after saving.");
+        }
+
+        await saveClubSizeToDirectory(supabase, {
+          slug: nextSlug,
+          clubName: payload.club_name,
+          size: club_size || null
+        });
+
+        sizeRows = await getStadiumExperienceClubs(supabase);
+        currentClubSize = getClubSizeForClub(sizeRows, club);
+        populateForm(club);
+
+        if (club.slug !== currentSlug) {
+          window.history.replaceState({}, "", `/admin/clubs/${club.slug}/`);
+        }
+
+        setSaveMessage(
+          published
+            ? "Club page published. It will now appear live across the public site."
+            : currentPublished
+              ? "Draft saved. The live page is unchanged until you publish these edits."
+              : "Draft saved. It will stay hidden from the public site until you publish it."
+        );
+        setInlineSaveMessage(
+          published
+            ? "Published successfully."
+            : "Draft saved successfully."
+        );
+      } catch (error) {
+        setSaveMessage(error instanceof Error ? error.message : "Unable to save the club.", true);
+        setInlineSaveMessage(error instanceof Error ? error.message : "Unable to save the club.", true);
+      }
+    };
+
+    const deleteClub = async () => {
+      const clubName = String(editorForm?.elements.namedItem("club_name")?.value ?? "").trim() || "this club";
+      const confirmed = window.confirm(`Delete ${clubName}? This cannot be undone.`);
+
+      if (!confirmed) {
+        return;
+      }
+
+      setSaveMessage("Deleting club.");
+
+      try {
+        const { error } = await supabase.from("club_pages").delete().eq("slug", currentSlug);
+
+        if (error) {
+          throw new Error(error.message);
+        }
+
+        window.location.href = "/admin/";
+      } catch (error) {
+        setSaveMessage(error instanceof Error ? error.message : "Unable to delete the club.", true);
+      }
+    };
+
+    const discardDraft = async () => {
+      if (!supportsDraftWorkflow) {
+        setSaveMessage("Discard draft changes is not available until the draft columns are added to club_pages in Supabase.", true);
+        return;
+      }
+
+      if (!(currentPublished && hasDraftChanges)) {
+        return;
+      }
+
+      const confirmed = window.confirm("Discard the saved draft changes and go back to the currently published page?");
+
+      if (!confirmed) {
+        return;
+      }
+
+      setSaveMessage("Discarding draft changes.");
+
+      try {
+        const { error } = await supabase
+          .from("club_pages")
+          .update({
+            draft_content: null,
+            draft_updated_at: null
+          })
+          .eq("slug", currentSlug)
+          .select("slug")
+          .single();
+
+        if (error) {
+          throw new Error(error.message);
+        }
+
+        const club = await fetchClubEditorRecord(currentSlug);
+
+        if (!club) {
+          throw new Error("Unable to reload the club after discarding the draft.");
+        }
+
+        populateForm(club);
+        setSaveMessage("Draft removed. The editor is now showing the published page again.");
+        setInlineSaveMessage("Draft changes discarded.");
+      } catch (error) {
+        setSaveMessage(error instanceof Error ? error.message : "Unable to discard the draft.", true);
+        setInlineSaveMessage(error instanceof Error ? error.message : "Unable to discard the draft.", true);
+      }
+    };
+
+    if (!supabase || !gate) {
+      setState("denied");
+    } else {
+      supabase.auth.getSession().then(({ data }) => {
+        const session = data.session;
+
+        if (!session) {
+          setState("denied");
+          return;
+        }
+
+        if (emailElement) {
+          emailElement.textContent = session.user.email ?? "";
+        }
+
+        setState("ready");
+        loadEditor();
+      });
+
+      saveDraftButton?.addEventListener("click", () => saveClub(false));
+      publishButton?.addEventListener("click", () => saveClub(true));
+      discardDraftButton?.addEventListener("click", discardDraft);
+      deleteButton?.addEventListener("click", deleteClub);
+
+      signOutButton?.addEventListener("click", async () => {
+        await supabase.auth.signOut();
+        redirectToLogin();
+      });
+    }
+  </script>
+</BaseLayout>

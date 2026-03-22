@@ -1,0 +1,56 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { supplierBenefits } from "../../data/site";
+import { getSupplierFeatures } from "../../lib/content";
+
+const suppliers = await getSupplierFeatures();
+---
+
+<BaseLayout
+  title="Suppliers"
+  description="Supplier opportunities and partnership routes across the Stadium Experience network."
+>
+  <section class="page-hero">
+    <p class="eyebrow">Suppliers</p>
+    <h1>Partnership routes that help suppliers connect with stadium venues.</h1>
+    <p class="lede">
+      Explore how suppliers can introduce products and services to the network, support industry
+      meetings and build visibility through awards-related activity.
+    </p>
+  </section>
+
+  <section class="section section-tight">
+    <div class="detail-grid venue-detail-grid">
+      <article class="card info-card">
+        <p class="eyebrow">Why partner</p>
+        <h2>Useful routes into the network, not just a brochure page.</h2>
+        <ul class="feature-list">
+          {supplierBenefits.map((benefit) => (
+            <li>{benefit}</li>
+          ))}
+        </ul>
+      </article>
+      <article class="card info-card">
+        <p class="eyebrow">Next step</p>
+        <h2>Talk to the team about the right route</h2>
+        <p>
+          Whether you want to advertise, present at meetings or support the awards, the first
+          step is a practical conversation about the best fit.
+        </p>
+        <a class="button button-primary" href="/enquire/">Discuss supplier opportunities</a>
+      </article>
+    </div>
+  </section>
+
+  <section class="section section-tight">
+    <div class="card-grid">
+      {suppliers.map((supplier) => (
+        <article class="card">
+          <p class="eyebrow">{supplier.category}</p>
+          <h2>{supplier.name}</h2>
+          <p>{supplier.summary}</p>
+        </article>
+      ))}
+    </div>
+  </section>
+</BaseLayout>

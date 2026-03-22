@@ -1,0 +1,56 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { memberBenefits, testimonials } from "../../data/site";
+---
+
+<BaseLayout
+  title="About Stadium Experience"
+  description="About Stadium Experience and the membership-focused direction of the site."
+>
+  <section class="page-hero">
+    <p class="eyebrow">About</p>
+    <h1>A not-for-profit venue network built around discovery, member value and direct enquiries.</h1>
+    <p class="lede">
+      Stadium Experience brings together football, rugby and cricket venues across the UK,
+      helping event planners discover distinctive spaces while supporting member venues with
+      clearer promotion and stronger enquiry handling.
+    </p>
+  </section>
+
+  <section class="section section-tight">
+    <div class="detail-grid venue-detail-grid">
+      <article class="card info-card">
+        <p class="eyebrow">What the organisation does</p>
+        <h2>Promote stadium venues as serious event destinations.</h2>
+        <p>
+          The network helps planners find memorable venues for conferences, meetings,
+          exhibitions, hospitality and celebrations, while giving member clubs a stronger shared
+          platform for promotion.
+        </p>
+      </article>
+      <article class="card testimonial-card">
+        <p class="eyebrow">Industry view</p>
+        <blockquote>{testimonials[1].quote}</blockquote>
+        <p class="testimonial-meta">{testimonials[1].name}, {testimonials[1].role}</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="section section-tight">
+    <div class="section-heading">
+      <p class="eyebrow">Member benefits</p>
+      <h2>Less manual publishing, more useful journeys.</h2>
+    </div>
+    <div class="card-grid">
+      {memberBenefits.map((benefit) => (
+        <article class="card">
+          <h3>{benefit}</h3>
+          <p>
+            Each improvement supports stronger venue visibility, cleaner lead capture and a more
+            professional public-facing experience.
+          </p>
+        </article>
+      ))}
+    </div>
+  </section>
+</BaseLayout>

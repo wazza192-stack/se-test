@@ -1,0 +1,31 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { jobListings } from "../../data/site";
+---
+
+<BaseLayout
+  title="Stadium Jobs"
+  description="Careers and recruitment opportunities across stadium conference, events and hospitality teams."
+>
+  <section class="page-hero">
+    <p class="eyebrow">Stadium Jobs</p>
+    <h1>Careers across the stadium events industry</h1>
+    <p class="lede">
+      Explore roles in sales, hospitality and operations from venues across the Stadium
+      Experience network.
+    </p>
+  </section>
+
+  <section class="section section-tight">
+    <div class="stack">
+      {jobListings.map((job) => (
+        <article class="card list-card">
+          <p class="eyebrow">{job.location} | {job.type}</p>
+          <h2>{job.title}</h2>
+          <p>{job.summary}</p>
+          <a class="text-link" href="/enquire/">Enquire about this role</a>
+        </article>
+      ))}
+    </div>
+  </section>
+</BaseLayout>
