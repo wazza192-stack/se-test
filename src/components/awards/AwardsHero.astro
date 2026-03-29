@@ -1,0 +1,85 @@
+---
+import type { AwardsLink, AwardsTimelineItem } from "../../data/awards";
+
+type Props = {
+  eyebrow: string;
+  title: string;
+  summary: string;
+  heroLabel?: string | null;
+  statusText?: string | null;
+  heroImageUrl?: string | null;
+  timeline?: AwardsTimelineItem[];
+  highlights?: string[];
+  ctaLinks?: AwardsLink[];
+};
+
+const {
+  eyebrow,
+  title,
+  summary,
+  heroLabel,
+  statusText,
+  heroImageUrl,
+  timeline = [],
+  highlights = [],
+  ctaLinks = []
+} = Astro.props;
+
+const visibleTimeline = timeline.filter((item) => item.value).slice(0, 3);
+---
+
+<section class="awards-hero-stage">
+  <div class="awards-hero-copy">
+    <p class="eyebrow">{eyebrow}</p>
+    <h1>{title}</h1>
+    <p class="lede">{summary}</p>
+
+    {ctaLinks.length > 0 && (
+      <div class="hero-actions awards-hero-actions">
+        {ctaLinks.map((link, index) => (
+          <a
+            class={index === 0 ? "button button-primary" : "button button-secondary"}
+            href={link.href}
+            target={link.external ? "_blank" : undefined}
+            rel={link.external ? "noreferrer" : undefined}
+          >
+            {link.label}
+          </a>
+        ))}
+      </div>
+    )}
+  </div>
+
+  <aside class="awards-hero-panel">
+    <div
+      class:list={["awards-hero-media", !heroImageUrl && "awards-hero-media-fallback"]}
+      style={heroImageUrl ? `--awards-hero-image: url('${heroImageUrl}')` : undefined}
+    >
+      <div class="awards-hero-media-overlay"></div>
+      <div class="awards-hero-card">
+        {heroLabel && <span class="awards-hero-chip">{heroLabel}</span>}
+        {statusText && <span class="admin-status-pill is-published">{statusText}</span>}
+
+        {visibleTimeline.length > 0 && (
+          <dl class="awards-hero-timeline">
+            {visibleTimeline.map((item) => (
+              <div class="awards-hero-timeline-item">
+                <dt>{item.label}</dt>
+                <dd>
+                  <strong>{item.value}</strong>
+                  {item.detail && <span>{item.detail}</span>}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        )}
+
+        {highlights.length > 0 && (
+          <ul class="awards-hero-points">
+            {highlights.map((item) => <li>{item}</li>)}
+          </ul>
+        )}
+      </div>
+    </div>
+  </aside>
+</section>

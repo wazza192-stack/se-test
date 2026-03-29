@@ -1,0 +1,232 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getJobBySlug } from "../../lib/content";
+import { parseJobSectionContent, type JobSectionContentBlock } from "../../lib/job-section-content";
+
+const { slug } = Astro.params;
+const job = slug ? await getJobBySlug(slug) : undefined;
+const clubInitials = job?.location
+  ? job.location
+      .split(/[\s&(]+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase() ?? "")
+      .join("")
+  : "SE";
+
+function escapeHtml(value: string) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function renderJobParagraph(value: string) {
+  const pattern = /\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g;
+  let lastIndex = 0;
+  let html = "";
+
+  for (const match of value.matchAll(pattern)) {
+    const [fullMatch, label, href] = match;
+    const start = match.index ?? 0;
+    html += escapeHtml(value.slice(lastIndex, start));
+    html += `<a href="${escapeHtml(href)}" target="_blank" rel="noreferrer">${escapeHtml(label)}</a>`;
+    lastIndex = start + fullMatch.length;
+  }
+
+  html += escapeHtml(value.slice(lastIndex));
+  return html;
+}
+
+function renderJobBlock(value: string) {
+  const trimmed = value.trim();
+
+  return `<p>${renderJobParagraph(trimmed)}</p>`;
+}
+
+function renderJobBullets(bullets: Array<{ text: string; level: number }>) {
+  const normalized = bullets
+    .map((bullet) => ({
+      text: renderJobParagraph(bullet.text),
+      level: bullet.level === 2 ? 2 : 1
+    }))
+    .filter((bullet) => bullet.text);
+
+  if (!normalized.length) {
+    return "";
+  }
+
+  type BulletNode = { text: string; children: BulletNode[] };
+  const root: BulletNode[] = [];
+  const stack: Array<{ items: BulletNode[] }> = [{ items: root }];
+
+  for (const bullet of normalized) {
+    const effectiveLevel = Math.max(1, Math.min(bullet.level, stack.length));
+
+    while (stack.length > effectiveLevel) {
+      stack.pop();
+    }
+
+    const node: BulletNode = { text: bullet.text, children: [] };
+    stack[stack.length - 1].items.push(node);
+    stack.push({ items: node.children });
+  }
+
+  const renderNodes = (nodes: BulletNode[]): string =>
+    `<ul>${nodes
+      .map((node) => `<li>${node.text}${node.children.length ? renderNodes(node.children) : ""}</li>`)
+      .join("")}</ul>`;
+
+  return renderNodes(root);
+}
+
+function renderJobSectionBlocks(blocks: JobSectionContentBlock[]) {
+  const html: string[] = [];
+  let bufferedBullets: Array<{ text: string; level: number }> = [];
+
+  const flushBullets = () => {
+    if (!bufferedBullets.length) {
+      return;
+    }
+
+    html.push(`<div class="job-content-block">${renderJobBullets(bufferedBullets)}</div>`);
+    bufferedBullets = [];
+  };
+
+  for (const block of blocks) {
+    if (block.type === "bullet") {
+      bufferedBullets.push({ text: block.text, level: block.level });
+      continue;
+    }
+
+    flushBullets();
+    html.push(`<div class="job-content-block">${renderJobBlock(block.text)}</div>`);
+  }
+
+  flushBullets();
+  return html.join("");
+}
+
+if (!job) {
+  Astro.response.status = 404;
+}
+---
+
+<BaseLayout
+  title={job ? `${job.title} | Stadium Jobs` : "Job not found"}
+  description={job?.summary ?? "Job opportunity not found."}
+>
+  {job ? (
+    <>
+      <section class="page-hero">
+        <p class="eyebrow">Stadium Jobs</p>
+        <div class="club-hero-badge">
+          {job.crestUrl ? (
+            <img src={job.crestUrl} alt="" loading="eager" class="club-hero-image-clean" />
+          ) : (
+            <div class="club-hero-fallback club-hero-fallback-clean" aria-hidden="true">{clubInitials}</div>
+          )}
+        </div>
+        <h1>{job.title}</h1>
+        <p class="lede">{job.summary}</p>
+        <div class="hero-actions">
+          <a class="button button-primary" href={job.applicationUrl ?? "/enquire/"} target={job.applicationUrl ? "_blank" : undefined} rel={job.applicationUrl ? "noreferrer" : undefined}>
+            {job.applicationUrl ? "Apply now" : "Enquire about this role"}
+          </a>
+          <a class="button button-secondary" href="/stadium-jobs/">Back to all jobs</a>
+        </div>
+      </section>
+
+      <section class="section section-tight">
+        <div class="venue-meta-bar venue-meta-bar-rich">
+          <div>
+            <span class="filter-label">Club</span>
+            <strong>{job.location}</strong>
+          </div>
+          <div>
+            <span class="filter-label">Role type</span>
+            <strong>{job.type}</strong>
+          </div>
+          {job.closingDate && (
+            <div>
+              <span class="filter-label">Closing date</span>
+              <strong>{job.closingDate}</strong>
+            </div>
+          )}
+        </div>
+      </section>
+
+      <section class="section section-tight">
+        <div class="detail-grid venue-detail-grid">
+          <article class="card info-card">
+            <p class="eyebrow">Role overview</p>
+            <h2>About this opportunity</h2>
+            <div class="stack">
+              {job.sections.map((section) => (
+                <section class="stack">
+                  <h3>{section.heading}</h3>
+                  <div
+                    set:html={renderJobSectionBlocks(
+                      parseJobSectionContent(
+                        section.content ??
+                          [
+                            ...(section.body ?? []),
+                            ...((section.bullets ?? []).map(
+                              (bullet) => `${bullet.level === 2 ? "  " : ""}- ${bullet.text}`
+                            ))
+                          ].join("\n\n")
+                      )
+                    )}
+                  />
+                </section>
+              ))}
+            </div>
+          </article>
+          <article class="card info-card">
+            <p class="eyebrow">Next step</p>
+            <h2>Continue your application</h2>
+            <p>
+              Use the route below to apply directly or continue to the enquiry form for this role.
+            </p>
+            {(job.salary || job.hours || job.jobLocation) && (
+              <div class="venue-meta-bar venue-meta-bar-rich">
+                {job.salary && (
+                  <div>
+                    <span class="filter-label">Salary</span>
+                    <strong>{job.salary}</strong>
+                  </div>
+                )}
+                {job.hours && (
+                  <div>
+                    <span class="filter-label">Hours</span>
+                    <strong>{job.hours}</strong>
+                  </div>
+                )}
+                {job.jobLocation && (
+                  <div>
+                    <span class="filter-label">Location</span>
+                    <strong>{job.jobLocation}</strong>
+                  </div>
+                )}
+              </div>
+            )}
+            <div class="stack">
+              <a class="button button-primary" href={job.applicationUrl ?? "/enquire/"} target={job.applicationUrl ? "_blank" : undefined} rel={job.applicationUrl ? "noreferrer" : undefined}>
+                {job.applicationUrl ? "Apply now" : "Enquire about this role"}
+              </a>
+            </div>
+          </article>
+        </div>
+      </section>
+    </>
+  ) : (
+    <section class="page-hero">
+      <p class="eyebrow">Stadium Jobs</p>
+      <h1>Job not found</h1>
+      <p class="lede">We could not find that job listing. Please return to the jobs page and choose another role.</p>
+      <a class="button button-primary" href="/stadium-jobs/">Back to all jobs</a>
+    </section>
+  )}
+</BaseLayout>

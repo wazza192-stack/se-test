@@ -1,0 +1,36 @@
+---
+import type { AwardsProgramme } from "../../data/awards";
+
+type Props = {
+  programmes: AwardsProgramme[];
+  title?: string;
+  summary?: string | null;
+};
+
+const { programmes, title = "Current and previous programmes", summary } = Astro.props;
+---
+
+{programmes.length > 0 && (
+  <section class="section section-tight">
+    <div class="section-heading">
+      <p class="eyebrow">Award years</p>
+      <h2>{title}</h2>
+      {summary && <p class="lede">{summary}</p>}
+    </div>
+
+    <div class="awards-programme-grid">
+      {programmes.map((programme) => (
+        <article class="card info-card awards-programme-card">
+          <p class="eyebrow">{programme.yearLabel}</p>
+          <h3>{programme.title}</h3>
+          <p>{programme.summary}</p>
+          <div class="awards-programme-meta">
+            {programme.eventDateText && <span>{programme.eventDateText}</span>}
+            {programme.venueName && <span>{programme.venueName}</span>}
+          </div>
+          <a class="button button-secondary" href={`/awards/${programme.slug}/`}>View programme</a>
+        </article>
+      ))}
+    </div>
+  </section>
+)}

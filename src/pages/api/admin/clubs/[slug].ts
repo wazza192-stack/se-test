@@ -7,7 +7,6 @@ type ClubPageEditorRow = {
   slug: string;
   club_name: string;
   crest_url: string | null;
-  venue_name: string | null;
   summary: string | null;
   address: string | null;
   website_url: string | null;
@@ -31,6 +30,7 @@ type ClubPageEditorRow = {
   christmas_image_url: string | null;
   play_on_pitch_image_url: string | null;
   published: boolean;
+  archived: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -39,7 +39,6 @@ const selectFields = `
   slug,
   club_name,
   crest_url,
-  venue_name,
   summary,
   address,
   website_url,
@@ -63,6 +62,7 @@ const selectFields = `
   christmas_image_url,
   play_on_pitch_image_url,
   published,
+  archived,
   created_at,
   updated_at
 `;
@@ -172,11 +172,15 @@ export const DELETE: APIRoute = async ({ request, params }) => {
 
   const { error } = await supabaseAdmin
     .from("club_pages")
-    .delete()
+    .update({
+      archived: true,
+      published: false,
+      updated_at: new Date().toISOString()
+    })
     .eq("slug", slug);
 
   if (error) {
-    return new Response("Unable to delete the club.", { status: 500 });
+    return new Response("Unable to archive the club.", { status: 500 });
   }
 
   return new Response(null, { status: 204 });

@@ -1,15 +1,67 @@
 ---
 import "../styles/global.css";
+import type { SeoMeta } from "../data/site";
+import { resolveSeo } from "../lib/seo";
 
 type Props = {
   title: string;
   description: string;
   chrome?: "site" | "admin";
+  seo?: SeoMeta | null;
+  canonicalUrl?: string | null;
+  canonicalPath?: string | null;
+  socialImage?: string | null;
+  ogTitle?: string | null;
+  ogDescription?: string | null;
+  ogImage?: string | null;
+  noindex?: boolean;
 };
 
-const { title, description, chrome = "site" } = Astro.props;
+const {
+  title,
+  description,
+  chrome = "site",
+  seo = null,
+  canonicalUrl = null,
+  canonicalPath = null,
+  socialImage = null,
+  ogTitle = null,
+  ogDescription = null,
+  ogImage = null,
+  noindex = false
+} = Astro.props;
 const currentYear = new Date().getFullYear();
 const isAdminChrome = chrome === "admin";
+const siteUrl = typeof import.meta.env.PUBLIC_SITE_URL === "string" && import.meta.env.PUBLIC_SITE_URL.trim()
+  ? import.meta.env.PUBLIC_SITE_URL.trim()
+  : null;
+
+function resolveAbsoluteUrl(value: string | null): string | null {
+  if (!value) {
+    return null;
+  }
+
+  try {
+    return new URL(value, siteUrl ?? Astro.url).toString();
+  } catch {
+    return value;
+  }
+}
+
+const pageSeo = resolveSeo({
+  title,
+  description,
+  seo,
+  canonicalUrl,
+  canonicalPath,
+  socialImage,
+  ogTitle,
+  ogDescription,
+  ogImage,
+  noindex
+});
+const resolvedCanonicalUrl = resolveAbsoluteUrl(pageSeo.canonical);
+const socialImageUrl = resolveAbsoluteUrl(pageSeo.ogImage);
 
 const navItems = [
   {
@@ -52,13 +104,13 @@ const navItems = [
     href: "/awards/",
     label: "Stadium Events & Hospitality Awards",
     children: [
-      { href: "/awards/", label: "2026 Awards" },
-      { href: "/awards/", label: "Book Tickets" },
-      { href: "/awards/", label: "Awards Accommodation" },
-      { href: "/awards/", label: "Award Categories" },
-      { href: "/awards/", label: "Independent Judging" },
-      { href: "/awards/", label: "Sponsorship Opportunities" },
-      { href: "/awards/", label: "Frequently Asked Questions" }
+      { href: "/awards/2026-awards/", label: "2026 Awards" },
+      { href: "/awards/book-tickets/", label: "Book Tickets" },
+      { href: "/awards/accommodation/", label: "Awards Accommodation" },
+      { href: "/awards/award-categories/", label: "Award Categories" },
+      { href: "/awards/independent-judging/", label: "Independent Judging" },
+      { href: "/awards/award-sponsorship-opportunities/", label: "Sponsorship Opportunities" },
+      { href: "/awards/frequently-asked-questions/", label: "Frequently Asked Questions" }
     ]
   },
   {
@@ -97,8 +149,23 @@ const usefulLinks = [
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{title}</title>
-    <meta name="description" content={description} />
+    <link rel="preconnect" href="https://use.typekit.net" />
+    <link rel="preconnect" href="https://p.typekit.net" crossorigin />
+    <link rel="stylesheet" href="https://use.typekit.net/fpw4edq.css" />
+    <title>{pageSeo.title}</title>
+    <meta name="description" content={pageSeo.description} />
+    {resolvedCanonicalUrl && <link rel="canonical" href={resolvedCanonicalUrl} />}
+    {pageSeo.noindex && <meta name="robots" content="noindex, nofollow" />}
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Stadium Experience" />
+    <meta property="og:title" content={pageSeo.ogTitle} />
+    <meta property="og:description" content={pageSeo.ogDescription} />
+    {resolvedCanonicalUrl && <meta property="og:url" content={resolvedCanonicalUrl} />}
+    {socialImageUrl && <meta property="og:image" content={socialImageUrl} />}
+    <meta name="twitter:card" content={socialImageUrl ? "summary_large_image" : "summary"} />
+    <meta name="twitter:title" content={pageSeo.ogTitle} />
+    <meta name="twitter:description" content={pageSeo.ogDescription} />
+    {socialImageUrl && <meta name="twitter:image" content={socialImageUrl} />}
   </head>
   <body>
     <div class:list={["site-shell", isAdminChrome && "site-shell-admin"]}>

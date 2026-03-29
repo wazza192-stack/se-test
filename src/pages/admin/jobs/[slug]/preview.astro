@@ -1,0 +1,330 @@
+---
+import BaseLayout from "../../../../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Job Preview" description="Preview an unpublished Stadium Jobs page." chrome="admin">
+  <section class="page-hero page-hero-tight">
+    <p class="eyebrow">Admin</p>
+    <h1>Job page preview</h1>
+    <p class="lede">Review this job page in a live-style layout before publishing it.</p>
+  </section>
+
+  <section class="section section-tight">
+    <div class="admin-gate" data-admin-gate>
+      <div class="directory-message-card" data-admin-loading>
+        <p class="eyebrow">Checking access</p>
+        <h3>Verifying your session.</h3>
+        <p>Please wait while we confirm your admin login.</p>
+      </div>
+
+      <div class="directory-message-card" data-admin-denied hidden>
+        <p class="eyebrow">Sign-in required</p>
+        <h3>You need to sign in before accessing this preview.</h3>
+        <p><a class="text-link" href="/admin/login/">Go to admin login</a></p>
+      </div>
+
+      <div class="stack" data-admin-ready hidden>
+        <div class="admin-toolbar">
+          <div>
+            <p class="eyebrow">Preview mode</p>
+            <h2 class="club-section-title" data-preview-heading>Loading preview</h2>
+          </div>
+          <div class="admin-toolbar-actions">
+            <a class="button button-secondary" data-editor-link href="/admin/jobs/">Back to editor</a>
+          </div>
+        </div>
+
+        <section class="page-hero">
+          <p class="eyebrow">Stadium Jobs</p>
+          <h1 data-job-title>Job title</h1>
+          <p class="lede" data-job-summary>Short summary appears here.</p>
+          <div class="hero-actions">
+            <a class="button button-primary" data-apply-link href="/enquire/">Enquire about this role</a>
+            <a class="button button-secondary" href="/stadium-jobs/">Back to all jobs</a>
+          </div>
+        </section>
+
+        <section class="section section-tight">
+          <div class="venue-meta-bar venue-meta-bar-rich" data-job-top-meta></div>
+        </section>
+
+        <section class="section section-tight">
+          <div class="detail-grid venue-detail-grid">
+            <article class="card info-card">
+              <p class="eyebrow">Role overview</p>
+              <h2>About this opportunity</h2>
+              <div class="stack" data-job-sections></div>
+            </article>
+            <article class="card info-card">
+              <p class="eyebrow">Next step</p>
+              <h2>Continue your application</h2>
+              <p>
+                Use the route below to apply directly or continue to the enquiry form for this role.
+              </p>
+              <div class="venue-meta-bar venue-meta-bar-rich" data-job-bottom-meta hidden></div>
+              <div class="stack">
+                <a class="button button-primary" data-apply-link-secondary href="/enquire/">Enquire about this role</a>
+              </div>
+            </article>
+          </div>
+        </section>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    import { verifyAdminBrowserSession } from "../../../../lib/admin-browser-auth";
+    import { getBrowserSupabase } from "../../../../lib/supabase-browser";
+    import { normaliseJobSections, parseJobSectionContent } from "../../../../lib/job-section-content";
+
+    const slug = window.location.pathname.split("/").filter(Boolean).at(-2);
+    const supabase = getBrowserSupabase();
+    const loading = document.querySelector("[data-admin-loading]");
+    const denied = document.querySelector("[data-admin-denied]");
+    const ready = document.querySelector("[data-admin-ready]");
+    const previewHeading = document.querySelector("[data-preview-heading]");
+    const editorLink = document.querySelector("[data-editor-link]");
+    const titleElement = document.querySelector("[data-job-title]");
+    const summaryElement = document.querySelector("[data-job-summary]");
+    const topMeta = document.querySelector("[data-job-top-meta]");
+    const sectionsWrap = document.querySelector("[data-job-sections]");
+    const bottomMeta = document.querySelector("[data-job-bottom-meta]");
+    const applyLink = document.querySelector("[data-apply-link]");
+    const applyLinkSecondary = document.querySelector("[data-apply-link-secondary]");
+
+    const setState = (state) => {
+      loading.hidden = state !== "loading";
+      denied.hidden = state !== "denied";
+      ready.hidden = state !== "ready";
+    };
+
+    const redirectToLogin = () => {
+      window.location.href = "/admin/login/";
+    };
+
+    const normaliseSections = (value, fallbackSummary) => {
+      const parsed = normaliseJobSections(value);
+      if (parsed.length) {
+        return parsed;
+      }
+
+      const fallbackContent = String(fallbackSummary ?? "").replace(/\r\n/g, "\n").trim();
+      return fallbackContent
+        ? normaliseJobSections([{ heading: "Role description", content: fallbackContent }])
+        : [];
+    };
+
+    const escapeHtml = (value) =>
+      value
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+
+    const renderJobParagraph = (value) => {
+      const pattern = /\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g;
+      let lastIndex = 0;
+      let html = "";
+
+      for (const match of value.matchAll(pattern)) {
+        const [fullMatch, label, href] = match;
+        const start = match.index ?? 0;
+        html += escapeHtml(value.slice(lastIndex, start));
+        html += `<a href="${escapeHtml(href)}" target="_blank" rel="noreferrer">${escapeHtml(label)}</a>`;
+        lastIndex = start + fullMatch.length;
+      }
+
+      html += escapeHtml(value.slice(lastIndex));
+      return html;
+    };
+
+    const renderJobBlock = (value) => {
+      const trimmed = String(value ?? "").trim();
+
+      return `<p>${renderJobParagraph(trimmed)}</p>`;
+    };
+
+    const renderJobBullets = (bullets) => {
+      const normalized = Array.isArray(bullets)
+        ? bullets
+            .map((bullet) => ({
+              text: renderJobParagraph(String(bullet?.text ?? "").trim()),
+              level: Number(bullet?.level) === 2 ? 2 : 1
+            }))
+            .filter((bullet) => bullet.text)
+        : [];
+
+      if (!normalized.length) {
+        return "";
+      }
+
+      const root = [];
+      const stack = [{ items: root }];
+
+      for (const bullet of normalized) {
+        const effectiveLevel = Math.max(1, Math.min(bullet.level, stack.length));
+
+        while (stack.length > effectiveLevel) {
+          stack.pop();
+        }
+
+        const node = { text: bullet.text, children: [] };
+        stack[stack.length - 1].items.push(node);
+        stack.push({ items: node.children });
+      }
+
+      const renderNodes = (nodes) =>
+        `<ul>${nodes
+          .map((node) => `<li>${node.text}${node.children.length ? renderNodes(node.children) : ""}</li>`)
+          .join("")}</ul>`;
+
+      return renderNodes(root);
+    };
+
+    const renderJobSectionBlocks = (blocks) => {
+      const html = [];
+      let bufferedBullets = [];
+
+      const flushBullets = () => {
+        if (!bufferedBullets.length) {
+          return;
+        }
+
+        html.push(`<div class="job-content-block">${renderJobBullets(bufferedBullets)}</div>`);
+        bufferedBullets = [];
+      };
+
+      blocks.forEach((block) => {
+        if (block.type === "bullet") {
+          bufferedBullets.push({ text: block.text, level: block.level });
+          return;
+        }
+
+        flushBullets();
+        html.push(`<div class="job-content-block">${renderJobBlock(block.text)}</div>`);
+      });
+
+      flushBullets();
+      return html.join("");
+    };
+
+    const createMetaItem = (label, value) => {
+      const wrap = document.createElement("div");
+      const eyebrow = document.createElement("span");
+      eyebrow.className = "filter-label";
+      eyebrow.textContent = label;
+      const strong = document.createElement("strong");
+      strong.textContent = value;
+      wrap.append(eyebrow, strong);
+      return wrap;
+    };
+
+    const renderPreview = (job) => {
+      const sections = normaliseSections(job.content_sections, job.description ?? job.summary ?? "");
+
+      if (previewHeading) {
+        previewHeading.textContent = job.title ?? "Job preview";
+      }
+
+      if (editorLink && slug) {
+        editorLink.href = `/admin/jobs/${slug}/`;
+      }
+
+      if (titleElement) {
+        titleElement.textContent = job.title ?? "Job title";
+      }
+
+      if (summaryElement) {
+        summaryElement.textContent = job.summary ?? "Short summary appears here.";
+      }
+
+      const applicationHref = job.application_url || "/enquire/";
+      const applicationLabel = job.application_url ? "Apply now" : "Enquire about this role";
+
+      [applyLink, applyLinkSecondary].forEach((link) => {
+        if (!link) return;
+        link.href = applicationHref;
+        link.textContent = applicationLabel;
+        if (job.application_url) {
+          link.target = "_blank";
+          link.rel = "noreferrer";
+        }
+      });
+
+      if (topMeta) {
+        topMeta.replaceChildren(
+          createMetaItem("Club", job.location || "Club to be confirmed"),
+          createMetaItem("Role type", job.employment_type || "Role type on request"),
+          ...(job.closing_date ? [createMetaItem("Closing date", job.closing_date)] : [])
+        );
+      }
+
+      if (sectionsWrap) {
+        sectionsWrap.replaceChildren();
+        sections.forEach((section) => {
+          const sectionWrap = document.createElement("section");
+          sectionWrap.className = "stack";
+          const heading = document.createElement("h3");
+          heading.textContent = section.heading;
+          sectionWrap.appendChild(heading);
+          const element = document.createElement("div");
+          element.innerHTML = renderJobSectionBlocks(
+            parseJobSectionContent(
+              section.content ??
+                [
+                  ...(section.body ?? []),
+                  ...((section.bullets ?? []).map((bullet) => `${bullet.level === 2 ? "  " : ""}- ${bullet.text}`))
+                ].join("\n\n")
+            )
+          );
+          sectionWrap.append(...Array.from(element.childNodes));
+          sectionsWrap.appendChild(sectionWrap);
+        });
+      }
+
+      if (bottomMeta) {
+        const items = [
+          job.salary ? createMetaItem("Salary", job.salary) : null,
+          job.hours ? createMetaItem("Hours", job.hours) : null,
+          job.job_location ? createMetaItem("Location", job.job_location) : null
+        ].filter(Boolean);
+
+        bottomMeta.hidden = items.length === 0;
+        bottomMeta.replaceChildren(...items);
+      }
+    };
+
+    const loadPreview = async () => {
+      if (!supabase || !slug) {
+        setState("denied");
+        redirectToLogin();
+        return;
+      }
+
+      const verifiedSession = await verifyAdminBrowserSession(supabase);
+
+      if (!verifiedSession.ok) {
+        setState("denied");
+        redirectToLogin();
+        return;
+      }
+
+      const { data: job, error } = await supabase
+        .from("stadium_jobs")
+        .select("slug, title, location, employment_type, summary, description, content_sections, salary, hours, job_location, closing_date, application_url, contact_email, published")
+        .eq("slug", slug)
+        .maybeSingle();
+
+      if (error || !job) {
+        setState("denied");
+        return;
+      }
+
+      setState("ready");
+      renderPreview(job);
+    };
+
+    loadPreview();
+  </script>
+</BaseLayout>

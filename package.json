@@ -7,7 +7,12 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "deploy": "wrangler deploy"
+    "deploy": "wrangler deploy",
+    "audit:image-urls": "node ./scripts/audit-image-urls.mjs",
+    "migrate:image-urls": "node ./scripts/migrate-image-urls-to-imagekit.mjs",
+    "backfill:club-capacity": "node ./scripts/backfill-club-capacity.mjs",
+    "import:club-pages": "node ./scripts/import-club-pages.mjs",
+    "export:marketing-pages": "node ./scripts/export-marketing-pages.mjs"
   },
   "dependencies": {
     "@astrojs/cloudflare": "^13.1.3",

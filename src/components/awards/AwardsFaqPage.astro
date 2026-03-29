@@ -1,0 +1,34 @@
+---
+import type { AwardsPage } from "../../data/awards";
+import AwardsFaqList from "./AwardsFaqList.astro";
+import AwardsHero from "./AwardsHero.astro";
+import AwardsLinkGrid from "./AwardsLinkGrid.astro";
+import AwardsSectionBlocks from "./AwardsSectionBlocks.astro";
+
+type Props = {
+  page: AwardsPage;
+};
+
+const { page } = Astro.props;
+---
+
+<AwardsHero
+  eyebrow={page.heroEyebrow}
+  title={page.title}
+  summary={page.summary}
+  heroLabel={page.heroLabel}
+  statusText={page.statusText}
+  heroImageUrl={page.heroImageUrl}
+  timeline={page.timeline}
+  highlights={page.highlights}
+  ctaLinks={page.ctaLinks}
+/>
+
+<section class="section section-tight">
+  <div class="detail-grid awards-content-grid">
+    <AwardsLinkGrid title="Related awards guidance" links={page.mediaLinks} />
+    <AwardsSectionBlocks sections={page.sections} />
+  </div>
+</section>
+
+<AwardsFaqList items={page.faqItems} />

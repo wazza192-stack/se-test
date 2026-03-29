@@ -1,0 +1,797 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Edit Job" description="Edit and publish Stadium Jobs listings." chrome="admin">
+  <section class="page-hero page-hero-tight">
+    <p class="eyebrow">Admin</p>
+    <h1>Edit job listing</h1>
+    <p class="lede">
+      Create and publish jobs so they appear automatically on the Stadium Jobs page and get their
+      own detail page.
+    </p>
+  </section>
+
+  <section class="section section-tight">
+    <div class="admin-gate" data-admin-gate>
+      <div class="directory-message-card" data-admin-loading>
+        <p class="eyebrow">Checking access</p>
+        <h3>Verifying your session.</h3>
+        <p>Please wait while we confirm your admin login.</p>
+      </div>
+
+      <div class="directory-message-card" data-admin-denied hidden>
+        <p class="eyebrow">Sign-in required</p>
+        <h3>You need to sign in before accessing the admin area.</h3>
+        <p><a class="text-link" href="/admin/login/">Go to admin login</a></p>
+      </div>
+
+      <div class="admin-dashboard" data-admin-ready hidden>
+        <div class="admin-toolbar">
+          <div>
+            <p class="eyebrow">Jobs editor</p>
+            <h2 class="club-section-title" data-editor-heading>Loading job</h2>
+            <p class="admin-user-email" data-admin-email></p>
+          </div>
+          <div class="admin-toolbar-actions">
+            <a class="button button-secondary" href="/admin/jobs/">Back to jobs</a>
+            <button class="button button-secondary" type="button" data-admin-signout>Sign out</button>
+          </div>
+        </div>
+
+        <nav class="admin-page-tabs" aria-label="Admin sections">
+          <a class="admin-page-tab" href="/admin/">Club pages</a>
+          <a class="admin-page-tab is-active" href="/admin/jobs/" aria-current="page">Stadium Jobs</a>
+          <a class="admin-page-tab" href="/admin/news/">Latest News</a>
+        </nav>
+
+        <div class="admin-editor-workspace admin-editor-workspace-full">
+          <div class="admin-editor-main">
+            <div class="card admin-card admin-editor-shell">
+              <div class="admin-editor-meta">
+                <div>
+                  <p class="eyebrow">Job workflow</p>
+                  <h3 data-editor-meta-title>Draft job listing</h3>
+                </div>
+                <span class="admin-status-pill is-draft" data-editor-status>Draft</span>
+              </div>
+
+              <p class="admin-auth-status" data-editor-status-message></p>
+
+              <form class="admin-editor-form" data-editor-form>
+                <div class="admin-form-grid">
+                  <label>
+                    Job title *
+                    <input type="text" name="title" required />
+                  </label>
+
+                  <label>
+                    Club *
+                    <select name="location" data-job-club-select required disabled>
+                      <option value="">Loading clubs</option>
+                    </select>
+                  </label>
+
+                  <label>
+                    Role type *
+                    <select name="employment_type" required>
+                      <option value="">Select role type</option>
+                      <option value="Full-time">Full-time</option>
+                      <option value="Part-time">Part-time</option>
+                    </select>
+                  </label>
+
+                  <label class="full-width">
+                    Summary *
+                    <input type="text" name="summary" placeholder="Short summary for the jobs listing page." required />
+                  </label>
+
+                  <div class="full-width admin-repeater" data-job-sections>
+                    <div class="admin-section-heading">
+                      <div>
+                        <p class="eyebrow">Job page sections</p>
+                        <h3>Flexible role content</h3>
+                      </div>
+                    </div>
+
+                    <p class="admin-club-meta">
+                      Add as many sections as you need and choose the heading for each one, such as
+                      <code>Job role</code>, <code>Job responsibilities</code> or <code>About the team</code>.
+                    </p>
+
+                    <div class="admin-repeater" data-job-sections-list></div>
+
+                    <p class="admin-field-help">
+                      Paste and edit content in one flow. Use a blank line for a new paragraph, type bullets with
+                      <code>-</code>, <code>*</code> or <code>•</code>, or select lines and click
+                      <code>Make bullets</code>. For links, use <code>[Apply here](https://example.com)</code>.
+                    </p>
+
+                    <button class="button button-secondary admin-sections-add-button" type="button" data-add-job-section>
+                      Add another section
+                    </button>
+                  </div>
+
+                  <label class="full-width">
+                    Application link
+                    <input type="url" name="application_url" placeholder="Paste the application page link if there is one." />
+                  </label>
+
+                  <label>
+                    Salary
+                    <input type="text" name="salary" placeholder="Competitive" />
+                  </label>
+
+                  <label>
+                    Hours
+                    <input type="text" name="hours" placeholder="40 hours per week" />
+                  </label>
+
+                  <label>
+                    Location
+                    <input type="text" name="job_location" placeholder="London" />
+                  </label>
+
+                  <label>
+                    Closing date
+                    <input type="date" name="closing_date" />
+                  </label>
+                </div>
+
+                <div class="admin-editor-actions admin-editor-actions-sticky">
+                  <div class="admin-publish-panel">
+                    <strong data-publish-status-label>Draft job</strong>
+                    <span data-publish-status-note>This job only appears on the public website after you publish it.</span>
+                  </div>
+                  <div class="admin-editor-actions-group">
+                    <a class="button button-secondary" href="/admin/jobs/">Back to jobs</a>
+                    <button class="button button-secondary" type="button" data-save-draft>Save draft</button>
+                    <button class="button button-primary" type="button" data-publish-job>Publish job</button>
+                    <button class="button button-secondary" type="button" data-preview-job>View page preview</button>
+                    <button class="button button-danger" type="button" data-delete-job>Delete job</button>
+                    <a class="text-link" href="#" data-live-link target="_blank" rel="noreferrer" hidden>View live job page</a>
+                  </div>
+                  <p class="admin-inline-status" data-inline-save-status aria-live="polite"></p>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    import { signOutAdminBrowserSession, verifyAdminBrowserSession } from "../../../lib/admin-browser-auth";
+    import { getBrowserSupabase } from "../../../lib/supabase-browser";
+    import {
+      buildJobSectionContent,
+      normaliseJobSections,
+      parseJobSectionContent,
+      splitJobSectionParagraphs
+    } from "../../../lib/job-section-content";
+
+    const slug = window.location.pathname.split("/").filter(Boolean).pop();
+    const supabase = getBrowserSupabase();
+    const gate = document.querySelector("[data-admin-gate]");
+    const loading = document.querySelector("[data-admin-loading]");
+    const denied = document.querySelector("[data-admin-denied]");
+    const ready = document.querySelector("[data-admin-ready]");
+    const emailElement = document.querySelector("[data-admin-email]");
+    const signOutButton = document.querySelector("[data-admin-signout]");
+    const editorHeading = document.querySelector("[data-editor-heading]");
+    const editorMetaTitle = document.querySelector("[data-editor-meta-title]");
+    const editorStatus = document.querySelector("[data-editor-status]");
+    const editorStatusMessage = document.querySelector("[data-editor-status-message]");
+    const inlineSaveStatus = document.querySelector("[data-inline-save-status]");
+    const editorForm = document.querySelector("[data-editor-form]");
+    const clubSelect = document.querySelector("[data-job-club-select]");
+    const sectionList = document.querySelector("[data-job-sections-list]");
+    const addSectionButton = document.querySelector("[data-add-job-section]");
+    const liveLink = document.querySelector("[data-live-link]");
+    const saveDraftButton = document.querySelector("[data-save-draft]");
+    const publishButton = document.querySelector("[data-publish-job]");
+    const previewButton = document.querySelector("[data-preview-job]");
+    const deleteButton = document.querySelector("[data-delete-job]");
+    const publishStatusLabel = document.querySelector("[data-publish-status-label]");
+    const publishStatusNote = document.querySelector("[data-publish-status-note]");
+    let clubOptions = [];
+    let currentSlug = slug;
+    let currentPublished = false;
+
+    const setState = (state) => {
+      loading.hidden = state !== "loading";
+      denied.hidden = state !== "denied";
+      ready.hidden = state !== "ready";
+    };
+
+    const redirectToLogin = () => {
+      window.location.href = "/admin/login/";
+    };
+
+    const setSaveMessage = (message, isError = false) => {
+      if (!editorStatusMessage) return;
+      editorStatusMessage.textContent = message;
+      editorStatusMessage.classList.toggle("is-error", isError);
+    };
+
+    const setInlineSaveMessage = (message, isError = false) => {
+      if (!inlineSaveStatus) return;
+      inlineSaveStatus.textContent = message;
+      inlineSaveStatus.classList.toggle("is-error", isError);
+    };
+
+    const assignField = (name, value) => {
+      const field = editorForm?.elements.namedItem(name);
+      if (field && "value" in field) {
+        field.value = value ?? "";
+      }
+    };
+
+    const slugifyTitle = (title, club) =>
+      `${title}-${club}`
+        .toLowerCase()
+        .replace(/&/g, "and")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+
+    const setPublishedUi = (published, slugValue) => {
+      currentPublished = Boolean(published);
+
+      if (editorStatus) {
+        editorStatus.textContent = published ? "Published" : "Draft";
+        editorStatus.classList.toggle("is-published", published);
+        editorStatus.classList.toggle("is-draft", !published);
+      }
+
+      if (publishStatusLabel) {
+        publishStatusLabel.textContent = published ? "Published job" : "Draft job";
+      }
+
+      if (publishStatusNote) {
+        publishStatusNote.textContent = published
+          ? "This job is live on the public website."
+          : "This job only appears on the public website after you publish it.";
+      }
+
+      if (liveLink && slugValue) {
+        liveLink.hidden = !published;
+        liveLink.href = `/stadium-jobs/${slugValue}/`;
+      }
+    };
+
+    const buildFallbackSections = (value) => {
+      const content = String(value ?? "").replace(/\r\n/g, "\n").trim();
+      const blocks = parseJobSectionContent(content);
+      const body = splitJobSectionParagraphs(content);
+      const bullets = blocks
+        .filter((block) => block.type === "bullet")
+        .map((block) => ({ text: block.text, level: block.level }));
+      return content ? [{ heading: "Role description", content, body, bullets }] : [];
+    };
+
+    const getSectionRows = () =>
+      Array.from(sectionList?.querySelectorAll("[data-job-section-row]") ?? []);
+
+    const getJobSectionsValue = () =>
+      getSectionRows()
+        .map((row) => {
+          const headingField = row.querySelector("[data-job-section-heading]");
+          const bodyField = row.querySelector("[data-job-section-body]");
+          const heading = String(headingField?.value ?? "").trim() || "Role description";
+          const content = String(bodyField?.value ?? "").replace(/\r\n/g, "\n").trim();
+          const blocks = parseJobSectionContent(content);
+          const body = blocks.filter((block) => block.type === "paragraph").map((block) => block.text);
+          const bullets = blocks
+            .filter((block) => block.type === "bullet")
+            .map((block) => ({ text: block.text, level: block.level }));
+          return content ? { heading, content, body, bullets } : null;
+        })
+        .filter(Boolean);
+
+    const createBulletRow = (bullet = { text: "", level: 1 }) => {
+      const row = document.createElement("div");
+      row.className = "admin-job-bullet-row";
+      row.setAttribute("data-job-bullet-row", "true");
+      row.innerHTML = `
+        <label class="admin-repeater-field">
+          <span>Bullet text</span>
+          <input type="text" data-job-bullet-text placeholder="Describe this point" />
+        </label>
+        <label class="admin-repeater-field admin-job-bullet-level">
+          <span>Level</span>
+          <select data-job-bullet-level>
+            <option value="1">Main bullet</option>
+            <option value="2">Indented bullet</option>
+          </select>
+        </label>
+      `;
+
+      const textInput = row.querySelector("[data-job-bullet-text]");
+      const levelSelect = row.querySelector("[data-job-bullet-level]");
+      const removeButton = document.createElement("button");
+      removeButton.className = "button button-danger button-compact";
+      removeButton.type = "button";
+      removeButton.textContent = "Remove";
+      removeButton.addEventListener("click", () => row.remove());
+
+      if (textInput) {
+        textInput.value = bullet.text ?? "";
+      }
+
+      if (levelSelect) {
+        levelSelect.value = bullet.level === 2 ? "2" : "1";
+      }
+
+      row.appendChild(removeButton);
+      return row;
+    };
+
+    const parseBulletImport = (value) =>
+      String(value ?? "")
+        .replace(/\r\n/g, "\n")
+        .split("\n")
+        .map((line) => {
+          if (!line.trim()) {
+            return null;
+          }
+
+          const expanded = line.replace(/\t/g, "  ");
+          const match = expanded.match(/^(\s*)([-*•]?\s*)(.*)$/);
+          const text = String(match?.[3] ?? expanded).trim();
+          const indent = match?.[1]?.length ?? 0;
+          return text
+            ? {
+                text,
+                level: indent >= 2 ? 2 : 1
+              }
+            : null;
+        })
+        .filter(Boolean);
+
+    const bindToolbarButton = (button, handler) => {
+      button?.addEventListener("mousedown", (event) => {
+        event.preventDefault();
+      });
+      button?.addEventListener("click", handler);
+    };
+
+    const transformSelectedLines = (textarea, lineTransform) => {
+      if (!textarea) {
+        return;
+      }
+
+      const value = String(textarea.value ?? "").replace(/\r\n/g, "\n");
+      const selectionStart = textarea.selectionStart ?? 0;
+      const selectionEnd = textarea.selectionEnd ?? selectionStart;
+      const lineStart = value.lastIndexOf("\n", Math.max(0, selectionStart - 1)) + 1;
+      const lineEndIndex = value.indexOf("\n", selectionEnd);
+      const lineEnd = lineEndIndex === -1 ? value.length : lineEndIndex;
+      const selectedLines = value.slice(lineStart, lineEnd).split("\n");
+      const transformed = selectedLines.map((line) => lineTransform(line)).join("\n");
+
+      textarea.value = `${value.slice(0, lineStart)}${transformed}${value.slice(lineEnd)}`;
+      textarea.focus();
+      textarea.setSelectionRange(lineStart, lineStart + transformed.length);
+    };
+
+    const createSectionRow = (section = { heading: "", body: [] }) => {
+      const row = document.createElement("div");
+      row.className = "admin-repeater-row";
+      row.setAttribute("data-job-section-row", "true");
+
+      const fields = document.createElement("div");
+      fields.className = "admin-repeater-fields";
+
+      const headingField = document.createElement("label");
+      headingField.className = "admin-repeater-field";
+      headingField.innerHTML = `
+        <span>Section heading</span>
+        <input type="text" data-job-section-heading placeholder="Job responsibilities" />
+      `;
+
+      const bodyField = document.createElement("label");
+      bodyField.className = "admin-repeater-field";
+      bodyField.innerHTML = `
+        <span>Section content</span>
+        <div class="admin-rich-text-controls">
+          <button class="button button-secondary button-compact" type="button" data-job-make-bullets>Make bullets</button>
+          <button class="button button-secondary button-compact" type="button" data-job-remove-bullets>Make paragraph</button>
+        </div>
+        <textarea rows="10" data-job-section-body placeholder="Paste or write content here. Use a blank line between paragraphs, or add bullets with - Item."></textarea>
+      `;
+      bodyField.classList.add("full-width");
+
+      const bulletsField = document.createElement("div");
+      bulletsField.className = "admin-repeater-field full-width";
+      bulletsField.innerHTML = `
+        <span>Bullet points</span>
+        <textarea rows="5" data-job-bullets-import placeholder="Paste one bullet per line. Use two leading spaces for an indented bullet."></textarea>
+        <div class="admin-job-bullets-actions">
+          <button class="button button-secondary button-compact" type="button" data-import-job-bullets>Import pasted bullets</button>
+          <button class="button button-secondary button-compact" type="button" data-add-job-bullet>Add bullet</button>
+        </div>
+        <div class="admin-repeater admin-job-bullets-list" data-job-bullets-list></div>
+      `;
+      bulletsField.classList.add("admin-job-bullets");
+
+      bulletsField.hidden = true;
+
+      fields.append(headingField, bodyField);
+
+      const removeButton = document.createElement("button");
+      removeButton.className = "button button-danger button-compact";
+      removeButton.type = "button";
+      removeButton.textContent = "Remove";
+      removeButton.addEventListener("click", () => {
+        row.remove();
+        if (!getSectionRows().length) {
+          sectionList?.appendChild(createSectionRow());
+        }
+      });
+
+      const headingInput = headingField.querySelector("input");
+      const bodyInput = bodyField.querySelector("textarea");
+
+      if (headingInput) {
+        headingInput.value = section.heading ?? "";
+      }
+
+      if (bodyInput) {
+        bodyInput.value =
+          section.content ??
+          buildJobSectionContent(
+            parseJobSectionContent(
+              Array.isArray(section.body)
+                ? [
+                    section.body.join("\n\n"),
+                    ...(Array.isArray(section.bullets)
+                      ? section.bullets.map((bullet) => `${bullet.level === 2 ? "  " : ""}- ${bullet.text}`)
+                      : [])
+                  ]
+                    .filter(Boolean)
+                    .join("\n\n")
+                : ""
+            )
+          );
+      }
+
+      const bulletsList = bulletsField.querySelector("[data-job-bullets-list]");
+      const addBulletButton = bulletsField.querySelector("[data-add-job-bullet]");
+      const importBulletsButton = bulletsField.querySelector("[data-import-job-bullets]");
+      const importBulletsTextarea = bulletsField.querySelector("[data-job-bullets-import]");
+      const bullets = Array.isArray(section.bullets) ? section.bullets : [];
+
+      if (bulletsList) {
+        const rows = bullets.length ? bullets : [];
+        bulletsList.replaceChildren(...rows.map((bullet) => createBulletRow(bullet)));
+      }
+
+      addBulletButton?.addEventListener("click", () => {
+        bulletsList?.appendChild(createBulletRow());
+      });
+
+      importBulletsButton?.addEventListener("click", () => {
+        const parsedBullets = parseBulletImport(importBulletsTextarea?.value ?? "");
+
+        if (!parsedBullets.length) {
+          return;
+        }
+
+        bulletsList?.append(...parsedBullets.map((bullet) => createBulletRow(bullet)));
+
+        if (importBulletsTextarea) {
+          importBulletsTextarea.value = "";
+        }
+      });
+
+      const makeBulletsButton = bodyField.querySelector("[data-job-make-bullets]");
+      const removeBulletsButton = bodyField.querySelector("[data-job-remove-bullets]");
+
+      bindToolbarButton(makeBulletsButton, () => {
+        transformSelectedLines(bodyInput, (line) => {
+          if (!line.trim() || /^\s*[-*•]\s+/.test(line)) {
+            return line;
+          }
+
+          const indent = line.match(/^\s*/)?.[0] ?? "";
+          return `${indent}- ${line.trimStart()}`;
+        });
+      });
+
+      bindToolbarButton(removeBulletsButton, () => {
+        transformSelectedLines(bodyInput, (line) => line.replace(/^(\s*)[-*•]\s+/, "$1"));
+      });
+
+      row.append(fields, removeButton);
+      return row;
+    };
+
+    const renderSectionRows = (sections = []) => {
+      if (!sectionList) {
+        return;
+      }
+
+      const rows = sections.length ? sections : [{ heading: "", content: "", body: [], bullets: [] }];
+      sectionList.replaceChildren(...rows.map((section) => createSectionRow(section)));
+    };
+
+    const populateClubSelect = (selectedValue = "") => {
+      if (!clubSelect) {
+        return;
+      }
+
+      clubSelect.innerHTML = "";
+
+      const placeholder = document.createElement("option");
+      placeholder.value = "";
+      placeholder.textContent = clubOptions.length ? "Select club" : "No clubs available";
+      clubSelect.appendChild(placeholder);
+
+      clubOptions.forEach((club) => {
+        const option = document.createElement("option");
+        option.value = club.club_name;
+        option.textContent = club.club_name;
+        option.selected = club.club_name === selectedValue;
+        clubSelect.appendChild(option);
+      });
+
+      if (selectedValue && !clubOptions.some((club) => club.club_name === selectedValue)) {
+        const legacyOption = document.createElement("option");
+        legacyOption.value = selectedValue;
+        legacyOption.textContent = `${selectedValue} (current)`;
+        legacyOption.selected = true;
+        clubSelect.appendChild(legacyOption);
+      }
+
+      clubSelect.disabled = clubOptions.length === 0 && !selectedValue;
+    };
+
+    const loadClubOptions = async (selectedValue = "") => {
+      if (!clubSelect) {
+        return;
+      }
+
+      try {
+        const primaryQuery = await supabase
+          .from("club_pages")
+          .select("club_name, archived")
+          .order("club_name");
+
+        let clubs = [];
+
+        if (primaryQuery.error) {
+          const fallbackQuery = await supabase
+            .from("club_pages")
+            .select("club_name")
+            .order("club_name");
+
+          if (fallbackQuery.error) {
+            throw new Error(fallbackQuery.error.message);
+          }
+
+          clubs = Array.isArray(fallbackQuery.data) ? fallbackQuery.data : [];
+        } else {
+          clubs = Array.isArray(primaryQuery.data)
+            ? primaryQuery.data.filter((club) => !club.archived)
+            : [];
+        }
+
+        clubOptions = clubs
+          .map((club) => ({
+            club_name: typeof club.club_name === "string" ? club.club_name.trim() : ""
+          }))
+          .filter((club) => club.club_name)
+          .sort((left, right) => left.club_name.localeCompare(right.club_name, "en", { sensitivity: "base" }));
+
+        populateClubSelect(selectedValue);
+      } catch (error) {
+        console.error("Unable to load club options for job editor", error);
+        clubOptions = [];
+        populateClubSelect(selectedValue);
+      }
+    };
+
+    const fetchJob = async (jobSlug) => {
+      const { data, error } = await supabase
+        .from("stadium_jobs")
+        .select("slug, title, location, employment_type, summary, description, content_sections, salary, hours, job_location, closing_date, application_url, contact_email, published, created_at, updated_at")
+        .eq("slug", jobSlug)
+        .maybeSingle();
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      return data;
+    };
+
+    const populateForm = (job) => {
+      if (editorHeading) editorHeading.textContent = job.title;
+      if (editorMetaTitle) editorMetaTitle.textContent = job.title;
+      assignField("title", job.title);
+      populateClubSelect(job.location ?? "");
+      assignField("employment_type", job.employment_type);
+      assignField("summary", job.summary);
+      assignField("application_url", job.application_url);
+      assignField("salary", job.salary);
+      assignField("hours", job.hours);
+      assignField("job_location", job.job_location);
+      assignField("closing_date", job.closing_date);
+      const normalisedSections = normaliseJobSections(job.content_sections);
+      renderSectionRows(normalisedSections.length ? normalisedSections : buildFallbackSections(job.description));
+      currentSlug = job.slug;
+      setPublishedUi(job.published, job.slug);
+      setSaveMessage(job.published ? "This job is currently live on the public site." : "This job is still safely in draft.");
+    };
+
+    const loadEditor = async () => {
+      if (!slug) {
+        setSaveMessage("Job slug is missing from the URL.", true);
+        return;
+      }
+
+      try {
+        const data = await fetchJob(slug);
+
+        if (!data) {
+          throw new Error("Unable to load this job.");
+        }
+
+        await loadClubOptions(data.location ?? "");
+        populateForm(data);
+      } catch (error) {
+        setSaveMessage(error instanceof Error ? error.message : "Unable to load this job.", true);
+      }
+    };
+
+    const saveJob = async (published) => {
+      setSaveMessage(published ? "Publishing job." : "Saving draft.");
+      setInlineSaveMessage(published ? "Publishing job..." : "Saving draft...");
+
+      try {
+        const previousSlug = currentSlug;
+        const title = String(editorForm?.elements.namedItem("title")?.value ?? "").trim();
+        const club = String(editorForm?.elements.namedItem("location")?.value ?? "").trim();
+        const employmentType = String(editorForm?.elements.namedItem("employment_type")?.value ?? "").trim();
+        const summary = String(editorForm?.elements.namedItem("summary")?.value ?? "").trim();
+        const sections = getJobSectionsValue();
+        const applicationUrl = String(editorForm?.elements.namedItem("application_url")?.value ?? "").trim();
+        const salary = String(editorForm?.elements.namedItem("salary")?.value ?? "").trim();
+        const hours = String(editorForm?.elements.namedItem("hours")?.value ?? "").trim();
+        const jobLocation = String(editorForm?.elements.namedItem("job_location")?.value ?? "").trim();
+        const closingDate = String(editorForm?.elements.namedItem("closing_date")?.value ?? "").trim();
+
+        if (!title || !club || !employmentType || !summary || !sections.length) {
+          throw new Error("Please complete the required job fields first.");
+        }
+
+        const nextSlug = slugifyTitle(title, club);
+
+        if (nextSlug !== currentSlug) {
+          const { data: existing, error: existingError } = await supabase
+            .from("stadium_jobs")
+            .select("slug")
+            .eq("slug", nextSlug)
+            .maybeSingle();
+
+          if (existingError) {
+            throw new Error(existingError.message);
+          }
+
+          if (existing?.slug) {
+            throw new Error("Another job already uses that slug.");
+          }
+        }
+
+        const { error } = await supabase
+          .from("stadium_jobs")
+          .update({
+            slug: nextSlug,
+            title,
+            location: club,
+            employment_type: employmentType,
+            summary,
+            description: sections.map((section) => section.content).join("\n\n"),
+            content_sections: sections,
+            salary: salary || null,
+            hours: hours || null,
+            job_location: jobLocation || null,
+            closing_date: closingDate || null,
+            application_url: applicationUrl || null,
+            contact_email: "office@stadiumexperience.com",
+            published,
+            updated_at: new Date().toISOString()
+          })
+          .eq("slug", currentSlug);
+
+        if (error) {
+          throw new Error(error.message);
+        }
+
+        const job = await fetchJob(nextSlug);
+
+        if (!job) {
+          throw new Error("Unable to reload the job after saving.");
+        }
+
+        populateForm(job);
+
+        if (job.slug !== previousSlug) {
+          window.history.replaceState({}, "", `/admin/jobs/${job.slug}/`);
+        }
+
+        setSaveMessage(published ? "Job published. It will now appear live on the jobs page." : "Draft saved.");
+        setInlineSaveMessage(published ? "Published successfully." : "Draft saved successfully.");
+      } catch (error) {
+        setSaveMessage(error instanceof Error ? error.message : "Unable to save the job.", true);
+        setInlineSaveMessage(error instanceof Error ? error.message : "Unable to save the job.", true);
+      }
+    };
+
+    const deleteJob = async () => {
+      const title = String(editorForm?.elements.namedItem("title")?.value ?? "").trim() || "this job";
+      const confirmed = window.confirm(`Delete ${title}? This will remove the job from the site.`);
+
+      if (!confirmed) {
+        return;
+      }
+
+      setSaveMessage("Deleting job.");
+
+      try {
+        const { error } = await supabase.from("stadium_jobs").delete().eq("slug", currentSlug);
+
+        if (error) {
+          throw new Error(error.message);
+        }
+
+        window.location.href = "/admin/jobs/";
+      } catch (error) {
+        setSaveMessage(error instanceof Error ? error.message : "Unable to delete the job.", true);
+      }
+    };
+
+    const openPreview = async () => {
+      const previewSlug = currentSlug || slug;
+
+      if (!previewSlug) {
+        setInlineSaveMessage("Save this job first before opening a preview.", true);
+        return;
+      }
+
+      window.open(`/admin/jobs/${previewSlug}/preview/`, "_blank", "noopener,noreferrer");
+    };
+
+    if (!supabase || !gate) {
+      setState("denied");
+    } else {
+      verifyAdminBrowserSession(supabase).then((verifiedSession) => {
+        if (!verifiedSession.ok) {
+          setState("denied");
+          redirectToLogin();
+          return;
+        }
+
+        if (emailElement) {
+          emailElement.textContent = verifiedSession.email ?? "";
+        }
+
+        setState("ready");
+        loadEditor();
+      });
+
+      addSectionButton?.addEventListener("click", () => {
+        sectionList?.appendChild(createSectionRow());
+      });
+      saveDraftButton?.addEventListener("click", () => saveJob(false));
+      publishButton?.addEventListener("click", () => saveJob(true));
+      previewButton?.addEventListener("click", openPreview);
+      deleteButton?.addEventListener("click", deleteJob);
+      signOutButton?.addEventListener("click", async () => {
+        await signOutAdminBrowserSession(supabase);
+        redirectToLogin();
+      });
+    }
+  </script>
+</BaseLayout>

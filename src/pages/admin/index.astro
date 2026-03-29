@@ -36,53 +36,112 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
           <button class="button button-secondary" type="button" data-admin-signout>Sign out</button>
         </div>
 
+        <nav class="admin-page-tabs" aria-label="Admin sections">
+          <a class="admin-page-tab is-active" href="/admin/" aria-current="page">Club data</a>
+          <a class="admin-page-tab" href="/admin/jobs/">Stadium Jobs</a>
+          <a class="admin-page-tab" href="/admin/news/">Latest News</a>
+        </nav>
+
         <div class="admin-shell">
           <article class="card admin-card admin-create-card">
             <div class="admin-section-heading">
               <div>
-                <p class="eyebrow">Club drafts</p>
-                <h3>Add a new club</h3>
+                <p class="eyebrow">Club records</p>
+                <h3>Manage club records</h3>
               </div>
-              <span class="admin-status-pill">Draft first</span>
+              <span class="admin-status-pill">Supabase data</span>
             </div>
 
-            <p>
-              Add the club name to create a draft page. We will try to pull the crest automatically,
-              keep the page unpublished while you edit it, and only show it publicly once you publish it.
-            </p>
+            <div class="admin-inline-tabs" role="tablist" aria-label="Club record actions">
+              <button
+                class="admin-inline-tab is-active"
+                type="button"
+                role="tab"
+                aria-selected="true"
+                data-club-draft-tab="add"
+              >
+                Add new
+              </button>
+              <button
+                class="admin-inline-tab"
+                type="button"
+                role="tab"
+                aria-selected="false"
+                data-club-draft-tab="restore"
+              >
+                Restore
+              </button>
+            </div>
 
-            <form class="admin-create-form" data-club-create-form>
-              <label>
-                Club name
-                <input
-                  type="text"
-                  name="clubName"
-                  placeholder="Arsenal Football Club"
-                  autocomplete="off"
-                  required
-                />
-              </label>
-              <label>
-                Size
-                <select
-                  name="clubSize"
-                >
-                  <option value="">Select size</option>
-                  <option value="Small">Small</option>
-                  <option value="Medium">Medium</option>
-                  <option value="Large">Large</option>
-                </select>
-              </label>
-              <button class="button button-primary" type="submit">Create draft club</button>
-            </form>
+            <div class="admin-inline-panel" data-club-draft-panel="add">
+              <p>
+                Add the club name to create a new club record. We will try to pull the crest automatically,
+                and you can finish the full club page content in the editor straight afterwards.
+              </p>
 
-            <p class="admin-auth-status" data-club-create-status></p>
+              <form class="admin-create-form" data-club-create-form>
+                <label>
+                  Club name
+                  <input
+                    type="text"
+                    name="clubName"
+                    placeholder="Arsenal Football Club"
+                    autocomplete="off"
+                    required
+                  />
+                </label>
+                <label>
+                  Size
+                  <select
+                    name="clubSize"
+                  >
+                    <option value="">Select size</option>
+                    <option value="Small">Small</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Large">Large</option>
+                  </select>
+                </label>
+                <button class="button button-primary" type="submit">Create club record</button>
+              </form>
+
+              <p class="admin-auth-status" data-club-create-status></p>
+            </div>
+
+            <div class="admin-inline-panel" data-club-draft-panel="restore" hidden>
+              <p>
+                Restore an archived club when it needs to come back into the live data workflow.
+              </p>
+
+              <div class="admin-archived-manager" data-admin-archived-manager hidden>
+                <div class="admin-section-heading">
+                  <div>
+                    <p class="eyebrow">Archived clubs</p>
+                    <h3>Restore an archived club</h3>
+                  </div>
+                  <span class="admin-status-pill is-archived">Hidden from live site</span>
+                </div>
+
+                <div class="admin-archived-actions">
+                  <label>
+                    Archived club
+                    <select data-admin-archived-select>
+                      <option value="">Select archived club</option>
+                    </select>
+                  </label>
+                  <button class="button button-secondary" type="button" data-admin-restore-archived>Restore club</button>
+                </div>
+              </div>
+
+              <div class="admin-list-state" data-admin-archived-empty hidden>
+                <p>No archived clubs are available to restore right now.</p>
+              </div>
+            </div>
           </article>
 
           <section class="card admin-card">
             <div class="admin-section-heading">
               <div>
-                <p class="eyebrow">Club pages</p>
+                <p class="eyebrow">Club data</p>
                 <h3>All clubs</h3>
               </div>
               <a class="text-link" href="/venues/">View venue page</a>
@@ -93,11 +152,32 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
             </div>
 
             <div class="admin-list-state" data-admin-clubs-empty hidden>
-              <p>No club drafts exist yet. Create your first club above.</p>
+              <p>No club records exist yet. Create your first club above.</p>
             </div>
 
             <div class="admin-list-state" data-admin-clubs-error hidden>
               <p>We could not load the club list right now.</p>
+            </div>
+
+            <div class="admin-club-filters" data-admin-club-filters hidden>
+              <label>
+                Status
+                <select data-admin-status-filter>
+                  <option value="">Published and draft clubs</option>
+                  <option value="draft">Draft</option>
+                  <option value="published">Published</option>
+                  <option value="archived">Archived</option>
+                </select>
+              </label>
+              <label>
+                Size
+                <select data-admin-size-filter>
+                  <option value="">All sizes</option>
+                  <option value="Small">Small</option>
+                  <option value="Medium">Medium</option>
+                  <option value="Large">Large</option>
+                </select>
+              </label>
             </div>
 
             <div class="admin-table-wrap" data-admin-clubs-list hidden>
@@ -121,6 +201,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
   </section>
 
   <script>
+    import { signOutAdminBrowserSession, verifyAdminBrowserSession } from "../../lib/admin-browser-auth";
     import { getBrowserSupabase } from "../../lib/supabase-browser";
     import { getClubSizeForClub, getStadiumExperienceClubs, saveClubSizeToDirectory } from "../../lib/stadiumexperience-clubs";
 
@@ -136,10 +217,47 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     const listLoading = document.querySelector("[data-admin-clubs-loading]");
     const listEmpty = document.querySelector("[data-admin-clubs-empty]");
     const listError = document.querySelector("[data-admin-clubs-error]");
+    const clubFilters = document.querySelector("[data-admin-club-filters]");
+    const statusFilter = document.querySelector("[data-admin-status-filter]");
+    const sizeFilter = document.querySelector("[data-admin-size-filter]");
     const clubList = document.querySelector("[data-admin-clubs-list]");
     const clubTableBody = document.querySelector("[data-admin-clubs-body]");
+    const clubDraftTabs = document.querySelectorAll("[data-club-draft-tab]");
+    const clubDraftPanels = document.querySelectorAll("[data-club-draft-panel]");
+    const archivedManager = document.querySelector("[data-admin-archived-manager]");
+    const archivedEmpty = document.querySelector("[data-admin-archived-empty]");
+    const archivedSelect = document.querySelector("[data-admin-archived-select]");
+    const restoreArchivedButton = document.querySelector("[data-admin-restore-archived]");
     const sizeOptions = ["", "Small", "Medium", "Large"];
     let sizeRows = [];
+    let allClubs = [];
+
+    const getClubStatusValue = (club) => {
+      if (club.archived) {
+        return "archived";
+      }
+
+      return club.published ? "published" : "draft";
+    };
+
+    const getClubStatusLabel = (club) => {
+      const statusValue = getClubStatusValue(club);
+
+      if (statusValue === "archived") {
+        return "Archived";
+      }
+
+      return statusValue === "draft" ? "Draft" : "Published";
+    };
+
+    const getClubStatusClass = (club) => {
+      const statusValue = getClubStatusValue(club);
+      if (statusValue === "archived") {
+        return "is-archived";
+      }
+
+      return statusValue === "draft" ? "is-draft" : "is-published";
+    };
 
     const setState = (state) => {
       loading.hidden = state !== "loading";
@@ -151,11 +269,51 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       if (listLoading) listLoading.hidden = state !== "loading";
       if (listEmpty) listEmpty.hidden = state !== "empty";
       if (listError) listError.hidden = state !== "error";
+      if (clubFilters) clubFilters.hidden = state !== "ready";
       if (clubList) clubList.hidden = state !== "ready";
     };
 
     const redirectToLogin = () => {
       window.location.href = "/admin/login/";
+    };
+
+    const renderArchivedManager = () => {
+      if (!archivedManager || !archivedSelect) {
+        return;
+      }
+
+      const archivedClubs = allClubs
+        .filter((club) => club.archived)
+        .sort((left, right) => left.club_name.localeCompare(right.club_name, "en", { sensitivity: "base" }));
+
+      archivedManager.hidden = archivedClubs.length === 0;
+      if (archivedEmpty) {
+        archivedEmpty.hidden = archivedClubs.length !== 0;
+      }
+
+      const previousValue = archivedSelect.value;
+      archivedSelect.innerHTML = '<option value="">Select archived club</option>';
+
+      archivedClubs.forEach((club) => {
+        const option = document.createElement("option");
+        option.value = club.slug;
+        option.textContent = club.club_name;
+        archivedSelect.appendChild(option);
+      });
+
+      archivedSelect.value = archivedClubs.some((club) => club.slug === previousValue) ? previousValue : "";
+    };
+
+    const setClubDraftTab = (nextTab) => {
+      clubDraftTabs.forEach((tab) => {
+        const isActive = tab.getAttribute("data-club-draft-tab") === nextTab;
+        tab.classList.toggle("is-active", isActive);
+        tab.setAttribute("aria-selected", String(isActive));
+      });
+
+      clubDraftPanels.forEach((panel) => {
+        panel.hidden = panel.getAttribute("data-club-draft-panel") !== nextTab;
+      });
     };
 
     const buildCrest = (club) => {
@@ -252,6 +410,43 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       return wrap;
     };
 
+    const updateArchivedState = async (club, archived) => {
+      const actionLabel = archived ? "archive" : "restore";
+      const confirmationMessage = archived
+        ? `Archive ${club.club_name}? You can restore it later from the archived filter.`
+        : `Restore ${club.club_name} so you can edit it and make it live again?`;
+      const confirmed = window.confirm(confirmationMessage);
+
+      if (!confirmed) {
+        return;
+      }
+
+      try {
+        const updatePayload = {
+          archived,
+          published: archived ? false : club.published,
+          updated_at: new Date().toISOString()
+        };
+        const { data, error } = await supabase
+          .from("club_pages")
+          .update(updatePayload)
+          .eq("slug", club.slug)
+          .select("slug, club_name, crest_url, published, archived, updated_at, draft_updated_at")
+          .single();
+
+        if (error) {
+          throw new Error(error.message);
+        }
+
+        const updatedClub = data ?? { ...club, ...updatePayload, draft_updated_at: club.draft_updated_at ?? null };
+        allClubs = allClubs.map((entry) => (entry.slug === club.slug ? { ...entry, ...updatedClub } : entry));
+        renderArchivedManager();
+        applyClubFilters();
+      } catch (error) {
+        window.alert(error instanceof Error ? error.message : `Unable to ${actionLabel} this club.`);
+      }
+    };
+
     const createClubRow = (club) => {
       const row = document.createElement("tr");
       row.className = "admin-club-table-row";
@@ -264,17 +459,14 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       clubHeading.className = "admin-club-table-heading";
       const name = document.createElement("strong");
       name.textContent = club.club_name;
-      const venue = document.createElement("span");
-      venue.textContent = club.venue_name ?? "Venue details still to be added";
-      clubHeading.append(name, venue);
+      clubHeading.append(name);
       clubMeta.append(buildCrest(club), clubHeading);
       clubCell.appendChild(clubMeta);
 
       const statusCell = document.createElement("td");
       const status = document.createElement("span");
-      const hasDraftChanges = Boolean(club.draft_updated_at);
-      status.className = `admin-status-pill ${club.published ? "is-published" : "is-draft"}`;
-      status.textContent = club.published ? (hasDraftChanges ? "Published + draft" : "Published") : "Draft";
+      status.className = `admin-status-pill ${getClubStatusClass(club)}`;
+      status.textContent = getClubStatusLabel(club);
       statusCell.appendChild(status);
 
       const sizeCell = document.createElement("td");
@@ -291,37 +483,62 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       actions.className = "admin-club-actions";
       actions.innerHTML = `
         <a class="button button-primary button-compact" href="/admin/clubs/${club.slug}/">Edit page</a>
-        <button class="button button-danger button-compact admin-delete-button" type="button">Delete</button>
+        <button class="button ${club.archived ? "button-secondary" : "button-danger"} button-compact admin-archive-button" type="button">${club.archived ? "Restore" : "Archive"}</button>
       `;
 
-      const deleteButton = actions.querySelector(".admin-delete-button");
-      deleteButton?.addEventListener("click", async () => {
-        const confirmed = window.confirm(`Delete ${club.club_name}? This cannot be undone.`);
-
-        if (!confirmed) {
-          return;
-        }
-
-        try {
-          const { error } = await supabase.from("club_pages").delete().eq("slug", club.slug);
-
-          if (error) {
-            throw new Error(error.message);
-          }
-
-          row.remove();
-
-          if (!clubTableBody?.children.length) {
-            setListState("empty");
-          }
-        } catch (error) {
-          window.alert(error instanceof Error ? error.message : "Unable to delete this club.");
-        }
+      const archiveButton = actions.querySelector(".admin-archive-button");
+      archiveButton?.addEventListener("click", async () => {
+        await updateArchivedState(club, !club.archived);
       });
 
       actionsCell.appendChild(actions);
       row.append(clubCell, statusCell, sizeCell, updatedCell, actionsCell);
       return row;
+    };
+
+    const renderClubList = (clubs) => {
+      if (!clubTableBody) {
+        return;
+      }
+
+      if (!clubs.length) {
+        clubTableBody.replaceChildren();
+        setListState("empty");
+        return;
+      }
+
+      const fragment = document.createDocumentFragment();
+      clubs.forEach((club) => fragment.appendChild(createClubRow(club)));
+      clubTableBody.replaceChildren(fragment);
+      setListState("ready");
+    };
+
+    const applyClubFilters = () => {
+      const selectedStatus = statusFilter?.value ?? "";
+      const selectedSize = sizeFilter?.value ?? "";
+
+      const filteredClubs = allClubs.filter((club) => {
+        const clubStatus = getClubStatusValue(club);
+
+        if (!selectedStatus && clubStatus === "archived") {
+          return false;
+        }
+
+        if (selectedStatus && clubStatus !== selectedStatus) {
+          return false;
+        }
+
+        if (selectedSize) {
+          const clubSize = getClubSizeForClub(sizeRows, club) ?? "";
+          if (clubSize !== selectedSize) {
+            return false;
+          }
+        }
+
+        return true;
+      });
+
+      renderClubList(filteredClubs);
     };
 
     const loadClubList = async () => {
@@ -337,13 +554,13 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
         const primaryQuery = await supabase
           .from("club_pages")
-          .select("slug, club_name, crest_url, venue_name, published, updated_at, draft_updated_at")
+          .select("slug, club_name, crest_url, published, archived, updated_at, draft_updated_at")
           .order("club_name");
 
         if (primaryQuery.error) {
           const fallbackQuery = await supabase
             .from("club_pages")
-            .select("slug, club_name, crest_url, venue_name, published, updated_at")
+            .select("slug, club_name, crest_url, published, updated_at")
             .order("club_name");
 
           if (fallbackQuery.error) {
@@ -351,22 +568,23 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
           }
 
           clubs = Array.isArray(fallbackQuery.data)
-            ? fallbackQuery.data.map((club) => ({ ...club, draft_updated_at: null }))
+            ? fallbackQuery.data.map((club) => ({ ...club, archived: false, draft_updated_at: null }))
             : [];
         } else {
           clubs = Array.isArray(primaryQuery.data) ? primaryQuery.data : [];
         }
 
         if (!clubs.length) {
+          allClubs = [];
           clubTableBody.replaceChildren();
+          renderArchivedManager();
           setListState("empty");
           return;
         }
 
-        const fragment = document.createDocumentFragment();
-        clubs.forEach((club) => fragment.appendChild(createClubRow(club)));
-        clubTableBody.replaceChildren(fragment);
-        setListState("ready");
+        allClubs = clubs;
+        renderArchivedManager();
+        applyClubFilters();
       } catch (error) {
         console.error("Unable to load admin clubs", error);
         setListState("error");
@@ -376,20 +594,52 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     if (!supabase || !gate) {
       setState("denied");
     } else {
-      supabase.auth.getSession().then(({ data }) => {
-        const session = data.session;
-
-        if (!session) {
+      verifyAdminBrowserSession(supabase).then((verifiedSession) => {
+        if (!verifiedSession.ok) {
           setState("denied");
+          redirectToLogin();
           return;
         }
 
         if (emailElement) {
-          emailElement.textContent = session.user.email ?? "";
+          emailElement.textContent = verifiedSession.email ?? "";
         }
 
         setState("ready");
         loadClubList();
+      });
+
+      [statusFilter, sizeFilter].forEach((filter) => {
+        filter?.addEventListener("change", () => {
+          applyClubFilters();
+        });
+      });
+
+      clubDraftTabs.forEach((tab) => {
+        tab.addEventListener("click", () => {
+          const nextTab = tab.getAttribute("data-club-draft-tab");
+          if (nextTab) {
+            setClubDraftTab(nextTab);
+          }
+        });
+      });
+
+      restoreArchivedButton?.addEventListener("click", async () => {
+        const selectedSlug = archivedSelect?.value ?? "";
+
+        if (!selectedSlug) {
+          window.alert("Please choose an archived club first.");
+          return;
+        }
+
+        const club = allClubs.find((entry) => entry.slug === selectedSlug);
+
+        if (!club) {
+          window.alert("We could not find that archived club.");
+          return;
+        }
+
+        await updateArchivedState(club, false);
       });
 
       createForm?.addEventListener("submit", async (event) => {
@@ -408,7 +658,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         }
 
         if (createStatus) {
-          createStatus.textContent = "Creating your new draft club page.";
+            createStatus.textContent = "Creating your new club record.";
           createStatus.classList.remove("is-error");
         }
 
@@ -468,7 +718,8 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
               spaces: [],
               events: [],
               key_facts: [],
-              published: false
+              published: false,
+              archived: false
             })
             .select("slug, club_name")
             .single();
@@ -486,21 +737,21 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
           }
 
           if (createStatus) {
-            createStatus.textContent = `Draft created for ${draft.club_name}. Opening the editor.`;
+            createStatus.textContent = `Club record created for ${draft.club_name}. Opening the editor.`;
             createStatus.classList.remove("is-error");
           }
 
           window.location.href = `/admin/clubs/${draft.slug}/`;
         } catch (error) {
           if (createStatus) {
-            createStatus.textContent = error instanceof Error ? error.message : "Unable to create the club draft.";
+            createStatus.textContent = error instanceof Error ? error.message : "Unable to create the club record.";
             createStatus.classList.add("is-error");
           }
         }
       });
 
       signOutButton?.addEventListener("click", async () => {
-        await supabase.auth.signOut();
+        await signOutAdminBrowserSession(supabase);
         redirectToLogin();
       });
     }

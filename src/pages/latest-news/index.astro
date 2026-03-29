@@ -1,57 +1,82 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import { newsContentBenefits } from "../../data/site";
-import { getNewsPosts } from "../../lib/content";
+import { getLatestNewsPageContent, getNewsPosts } from "../../lib/content";
 
-const posts = await getNewsPosts();
+const [pageContent, posts] = await Promise.all([getLatestNewsPageContent(), getNewsPosts()]);
 ---
 
 <BaseLayout
-  title="Latest News"
-  description="Editorial and member news from Stadium Experience."
+  seo={pageContent?.seo}
+  title={pageContent?.seo?.metaTitle ?? "Latest News"}
+  description={pageContent?.seo?.metaDescription ?? "Editorial and member news from Stadium Experience."}
+  canonicalPath="/latest-news/"
+  socialImage={null}
+  noindex={pageContent?.seo?.noindex}
 >
-  <section class="page-hero">
-    <p class="eyebrow">Latest news</p>
-    <h1>Editorial content that keeps members visible and helps the site rank.</h1>
-    <p class="lede">
-      News, insight and venue updates are a major visibility driver for the network,
-      especially when paired with category and regional landing pages.
-    </p>
-  </section>
+  <>
+      <section class="page-hero">
+        {pageContent?.hero.eyebrow && <p class="eyebrow">{pageContent.hero.eyebrow}</p>}
+        <h1>{pageContent?.hero.title}</h1>
+        {pageContent?.hero.intro && <p class="lede">{pageContent.hero.intro}</p>}
+      </section>
 
-  <section class="section section-tight">
-    <div class="detail-grid venue-detail-grid">
-      <article class="card info-card">
-        <p class="eyebrow">Why content matters</p>
-        <h2>Keep the site active, useful and discoverable.</h2>
-        <ul class="feature-list">
-          {newsContentBenefits.map((benefit) => (
-            <li>{benefit}</li>
-          ))}
-        </ul>
-      </article>
-      <article class="card info-card">
-        <p class="eyebrow">Stay updated</p>
-        <h2>Follow the latest venue and industry updates</h2>
-        <p>
-          Use editorial content to surface member news, venue launches, seasonal campaigns and
-          practical advice for planners.
-        </p>
-        <a class="button button-primary" href="/enquire/">Ask about newsletter sign-up</a>
-      </article>
-    </div>
-  </section>
+      <section class="section section-tight">
+        <div class="detail-grid venue-detail-grid">
+          <article class="card info-card">
+            <p class="eyebrow">Why content matters</p>
+            <h2>{pageContent?.benefitsHeading ?? "Keep the site active, useful and discoverable."}</h2>
+            {pageContent?.benefits?.length ? (
+              <ul class="feature-list">
+                {pageContent.benefits.map((benefit) => (
+                  <li>{benefit}</li>
+                ))}
+              </ul>
+            ) : (
+              <p>Editorial structure for this page has not been added yet.</p>
+            )}
+          </article>
 
-  <section class="section section-tight">
-    <div class="stack">
-      {posts.map((post) => (
-        <article class="card list-card list-card-rich">
-          <p class="eyebrow">{new Date(post.publishedAt).toLocaleDateString("en-GB", { dateStyle: "long" })}</p>
-          <h2>{post.title}</h2>
-          <p>{post.excerpt}</p>
-          <a class="text-link" href={`/latest-news/${post.slug}/`}>Read article</a>
-        </article>
-      ))}
-    </div>
-  </section>
+          {pageContent?.callout && (
+            <article class="card info-card">
+              {pageContent.callout.eyebrow && <p class="eyebrow">{pageContent.callout.eyebrow}</p>}
+              <h2>{pageContent.callout.title}</h2>
+              {pageContent.callout.body.length ? (
+                pageContent.callout.body.map((paragraph) => <p>{paragraph}</p>)
+              ) : (
+                <p>Use this callout to guide readers toward the next action.</p>
+              )}
+              {pageContent.callout.cta && (
+                <a class="button button-primary" href={pageContent.callout.cta.href}>
+                  {pageContent.callout.cta.label}
+                </a>
+              )}
+            </article>
+          )}
+        </div>
+      </section>
+
+      <section class="section section-tight">
+        <div class="stack">
+          {posts.length ? (
+            posts.map((post) => (
+              <article class="card list-card list-card-rich">
+                <p class="eyebrow">{new Date(post.publishedAt).toLocaleDateString("en-GB", { dateStyle: "long" })}</p>
+                <h2>{post.title}</h2>
+                <p>{post.excerpt}</p>
+                <a class="text-link" href={`/latest-news/${post.slug}/`}>Read article</a>
+              </article>
+            ))
+          ) : (
+            <article class="card info-card">
+              <p class="eyebrow">Latest news</p>
+              <h2>Articles will appear here soon.</h2>
+              <p>
+                Publish a news article through the custom admin flow to populate this listing, or keep
+                the local fallback content in place until editorial content is ready.
+              </p>
+            </article>
+          )}
+        </div>
+      </section>
+  </>
 </BaseLayout>

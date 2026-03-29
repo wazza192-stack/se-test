@@ -1,0 +1,66 @@
+---
+import type { AwardsPage, AwardsProgramme } from "../../data/awards";
+import AwardsHero from "./AwardsHero.astro";
+import AwardsLinkGrid from "./AwardsLinkGrid.astro";
+import AwardsProgrammeCards from "./AwardsProgrammeCards.astro";
+import AwardsSectionBlocks from "./AwardsSectionBlocks.astro";
+import AwardsSponsorGrid from "./AwardsSponsorGrid.astro";
+
+type Props = {
+  page: AwardsPage;
+  programmes: AwardsProgramme[];
+};
+
+const { page, programmes } = Astro.props;
+---
+
+<AwardsHero
+  eyebrow={page.heroEyebrow}
+  title={page.title}
+  summary={page.summary}
+  heroLabel={page.heroLabel}
+  statusText={page.statusText}
+  heroImageUrl={page.heroImageUrl}
+  timeline={page.timeline}
+  highlights={page.highlights}
+  ctaLinks={page.ctaLinks}
+/>
+
+<section class="section section-tight">
+  <div class="detail-grid awards-intro-grid">
+    <article class="card info-card awards-story-card">
+      <p class="eyebrow">Overview</p>
+      <h2>Built as a reusable awards content system</h2>
+      <div class="stack">
+        {page.intro.map((paragraph) => <p>{paragraph}</p>)}
+      </div>
+    </article>
+
+    <article class="card info-card awards-stats-card">
+      <p class="eyebrow">At a glance</p>
+      <h2>The awards programme in numbers</h2>
+      <dl class="awards-stat-grid">
+        {page.stats.map((stat) => (
+          <div class="awards-stat-item">
+            <dt>{stat.label}</dt>
+            <dd>{stat.value}</dd>
+          </div>
+        ))}
+      </dl>
+    </article>
+  </div>
+</section>
+
+<section class="section section-tight">
+  <div class="detail-grid awards-content-grid">
+    <AwardsLinkGrid title="Plan or explore the awards journey" links={page.mediaLinks} />
+    <AwardsSectionBlocks sections={page.sections} />
+  </div>
+</section>
+
+<AwardsProgrammeCards
+  programmes={programmes}
+  summary="The year template supports both live campaign pages and polished archive pages for previous awards."
+/>
+
+<AwardsSponsorGrid title={page.sponsorsTitle} summary={page.sponsorsSummary} sponsors={page.sponsors} />

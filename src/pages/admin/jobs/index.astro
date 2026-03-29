@@ -1,0 +1,490 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Admin Jobs" description="Manage Stadium Jobs listings." chrome="admin">
+  <section class="page-hero page-hero-tight">
+    <p class="eyebrow">Admin</p>
+    <h1>Stadium Jobs</h1>
+    <p class="lede">
+      Create, edit and publish club job listings so they appear automatically on the public jobs page.
+    </p>
+  </section>
+
+  <section class="section section-tight">
+    <div class="admin-gate" data-admin-gate>
+      <div class="directory-message-card" data-admin-loading>
+        <p class="eyebrow">Checking access</p>
+        <h3>Verifying your session.</h3>
+        <p>Please wait while we confirm your admin login.</p>
+      </div>
+
+      <div class="directory-message-card" data-admin-denied hidden>
+        <p class="eyebrow">Sign-in required</p>
+        <h3>You need to sign in before accessing the admin area.</h3>
+        <p><a class="text-link" href="/admin/login/">Go to admin login</a></p>
+      </div>
+
+      <div class="admin-dashboard" data-admin-ready hidden>
+        <div class="admin-toolbar">
+          <div>
+            <p class="eyebrow">Signed in</p>
+            <h2 class="club-section-title">Jobs dashboard</h2>
+            <p class="admin-user-email" data-admin-email></p>
+          </div>
+          <button class="button button-secondary" type="button" data-admin-signout>Sign out</button>
+        </div>
+
+        <nav class="admin-page-tabs" aria-label="Admin sections">
+          <a class="admin-page-tab" href="/admin/">Club pages</a>
+          <a class="admin-page-tab is-active" href="/admin/jobs/" aria-current="page">Stadium Jobs</a>
+          <a class="admin-page-tab" href="/admin/news/">Latest News</a>
+        </nav>
+
+        <div class="admin-shell">
+          <section class="card admin-card admin-jobs-card">
+            <div class="admin-section-heading">
+              <div>
+                <p class="eyebrow">Stadium Jobs</p>
+                <h3>Manage job listings</h3>
+              </div>
+              <a class="text-link" href="/stadium-jobs/">View jobs page</a>
+            </div>
+
+            <p>
+              Create the draft here, choose the club from the network, then finish the full role page
+              before publishing it live.
+            </p>
+
+            <form class="admin-create-form admin-job-create-form" data-job-create-form>
+              <label>
+                Club *
+                <select name="jobClub" data-job-club-select required disabled>
+                  <option value="">Loading clubs</option>
+                </select>
+              </label>
+              <label>
+                Job title *
+                <input
+                  type="text"
+                  name="jobTitle"
+                  placeholder="Conference & Events Sales Manager"
+                  autocomplete="off"
+                  required
+                />
+              </label>
+              <label>
+                Role type *
+                <select name="jobType" required>
+                  <option value="">Select role type</option>
+                  <option value="Full-time">Full-time</option>
+                  <option value="Part-time">Part-time</option>
+                </select>
+              </label>
+              <button class="button button-primary" type="submit">Create draft job</button>
+            </form>
+
+            <p class="admin-auth-status" data-job-create-status></p>
+
+            <div class="admin-list-state" data-admin-jobs-loading>
+              <p>Loading the jobs list.</p>
+            </div>
+
+            <div class="admin-list-state" data-admin-jobs-empty hidden>
+              <p>No jobs exist yet. Create your first listing above.</p>
+            </div>
+
+            <div class="admin-list-state" data-admin-jobs-error hidden>
+              <p>We could not load the jobs list right now.</p>
+            </div>
+
+            <div class="admin-table-wrap" data-admin-jobs-list hidden>
+              <table class="admin-club-table">
+                <thead>
+                  <tr>
+                    <th>Job</th>
+                    <th>Status</th>
+                    <th>Updated</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody data-admin-jobs-body></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    import { signOutAdminBrowserSession, verifyAdminBrowserSession } from "../../../lib/admin-browser-auth";
+    import { getBrowserSupabase } from "../../../lib/supabase-browser";
+    import { fetchClubDirectory } from "../../../lib/club-directory";
+
+    const supabase = getBrowserSupabase();
+    const gate = document.querySelector("[data-admin-gate]");
+    const loading = document.querySelector("[data-admin-loading]");
+    const denied = document.querySelector("[data-admin-denied]");
+    const ready = document.querySelector("[data-admin-ready]");
+    const emailElement = document.querySelector("[data-admin-email]");
+    const signOutButton = document.querySelector("[data-admin-signout]");
+    const jobCreateForm = document.querySelector("[data-job-create-form]");
+    const jobClubSelect = document.querySelector("[data-job-club-select]");
+    const jobCreateStatus = document.querySelector("[data-job-create-status]");
+    const jobsLoading = document.querySelector("[data-admin-jobs-loading]");
+    const jobsEmpty = document.querySelector("[data-admin-jobs-empty]");
+    const jobsError = document.querySelector("[data-admin-jobs-error]");
+    const jobsList = document.querySelector("[data-admin-jobs-list]");
+    const jobsTableBody = document.querySelector("[data-admin-jobs-body]");
+    let clubOptions = [];
+    let allJobs = [];
+    let clubCrests = new Map();
+
+    const setState = (state) => {
+      loading.hidden = state !== "loading";
+      denied.hidden = state !== "denied";
+      ready.hidden = state !== "ready";
+    };
+
+    const setJobsState = (state) => {
+      if (jobsLoading) jobsLoading.hidden = state !== "loading";
+      if (jobsEmpty) jobsEmpty.hidden = state !== "empty";
+      if (jobsError) jobsError.hidden = state !== "error";
+      if (jobsList) jobsList.hidden = state !== "ready";
+    };
+
+    const redirectToLogin = () => {
+      window.location.href = "/admin/login/";
+    };
+
+    const slugifyJobTitle = (title, club) =>
+      `${title}-${club}`
+        .toLowerCase()
+        .replace(/&/g, "and")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+
+    const getJobStatusClass = (job) => (job.published ? "is-published" : "is-draft");
+    const getJobStatusLabel = (job) => (job.published ? "Published" : "Draft");
+    const slugifyClubName = (name) =>
+      String(name ?? "")
+        .toLowerCase()
+        .replace(/&/g, "and")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+    const getClubInitials = (name) =>
+      String(name ?? "")
+        .split(/[\s&(]+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((part) => part[0]?.toUpperCase() ?? "")
+        .join("") || "SE";
+
+    const populateClubSelect = (selectedValue = "") => {
+      if (!jobClubSelect) {
+        return;
+      }
+
+      jobClubSelect.innerHTML = "";
+
+      const placeholder = document.createElement("option");
+      placeholder.value = "";
+      placeholder.textContent = clubOptions.length ? "Select club" : "No clubs available";
+      jobClubSelect.appendChild(placeholder);
+
+      clubOptions.forEach((club) => {
+        const option = document.createElement("option");
+        option.value = club.club_name;
+        option.textContent = club.club_name;
+        option.selected = club.club_name === selectedValue;
+        jobClubSelect.appendChild(option);
+      });
+
+      jobClubSelect.disabled = clubOptions.length === 0 && !selectedValue;
+    };
+
+    const loadClubOptions = async () => {
+      if (!jobClubSelect) {
+        return;
+      }
+
+      try {
+        const primaryQuery = await supabase
+          .from("club_pages")
+          .select("club_name, archived")
+          .order("club_name");
+
+        let clubs = [];
+
+        if (primaryQuery.error) {
+          const fallbackQuery = await supabase
+            .from("club_pages")
+            .select("club_name")
+            .order("club_name");
+
+          if (fallbackQuery.error) {
+            throw new Error(fallbackQuery.error.message);
+          }
+
+          clubs = Array.isArray(fallbackQuery.data) ? fallbackQuery.data : [];
+        } else {
+          clubs = Array.isArray(primaryQuery.data)
+            ? primaryQuery.data.filter((club) => !club.archived)
+            : [];
+        }
+
+        clubOptions = clubs
+          .map((club) => ({
+            club_name: typeof club.club_name === "string" ? club.club_name.trim() : ""
+          }))
+          .filter((club) => club.club_name)
+          .sort((left, right) => left.club_name.localeCompare(right.club_name, "en", { sensitivity: "base" }));
+
+        populateClubSelect();
+      } catch (error) {
+        console.error("Unable to load club options for jobs", error);
+        clubOptions = [];
+        populateClubSelect();
+
+        if (jobCreateStatus) {
+          jobCreateStatus.textContent = "We could not load the clubs list right now.";
+          jobCreateStatus.classList.add("is-error");
+        }
+      }
+    };
+
+    const loadClubCrests = async () => {
+      try {
+        const clubs = await fetchClubDirectory();
+        clubCrests = new Map(
+          clubs.map((club) => [slugifyClubName(club.name), club.crestUrl ?? null])
+        );
+      } catch (error) {
+        console.error("Unable to load club crests for jobs", error);
+        clubCrests = new Map();
+      }
+    };
+
+    const createJobRow = (job) => {
+      const row = document.createElement("tr");
+      row.className = "admin-club-table-row";
+
+      const jobCell = document.createElement("td");
+      const jobMeta = document.createElement("div");
+      jobMeta.className = "admin-club-table-meta";
+      const crest = document.createElement("div");
+      crest.className = "admin-club-crest admin-club-crest-small";
+      const crestUrl = clubCrests.get(slugifyClubName(job.location));
+
+      if (crestUrl) {
+        const image = document.createElement("img");
+        image.src = crestUrl;
+        image.alt = "";
+        image.loading = "lazy";
+        crest.appendChild(image);
+      } else {
+        crest.textContent = getClubInitials(job.location);
+      }
+
+      const jobHeading = document.createElement("div");
+      jobHeading.className = "admin-club-table-heading";
+      const title = document.createElement("strong");
+      title.textContent = job.location || "Club to be confirmed";
+      const meta = document.createElement("span");
+      meta.textContent = [job.title, job.employment_type].filter(Boolean).join(" | ");
+      jobHeading.append(title, meta);
+      jobMeta.append(crest, jobHeading);
+      jobCell.appendChild(jobMeta);
+
+      const statusCell = document.createElement("td");
+      const status = document.createElement("span");
+      status.className = `admin-status-pill ${getJobStatusClass(job)}`;
+      status.textContent = getJobStatusLabel(job);
+      statusCell.appendChild(status);
+
+      const updatedCell = document.createElement("td");
+      updatedCell.textContent = job.updated_at
+        ? new Date(job.updated_at).toLocaleString("en-GB")
+        : "Not yet updated";
+
+      const actionsCell = document.createElement("td");
+      const actions = document.createElement("div");
+      actions.className = "admin-club-actions";
+      actions.innerHTML = `
+        <a class="button button-primary button-compact" href="/admin/jobs/${job.slug}/">Edit job</a>
+        <button class="button button-danger button-compact admin-delete-job-button" type="button">Delete</button>
+      `;
+
+      const deleteButton = actions.querySelector(".admin-delete-job-button");
+      deleteButton?.addEventListener("click", async () => {
+        const confirmed = window.confirm(`Delete ${job.title}? This will remove the job from the site.`);
+
+        if (!confirmed) {
+          return;
+        }
+
+        try {
+          const { error } = await supabase.from("stadium_jobs").delete().eq("slug", job.slug);
+
+          if (error) {
+            throw new Error(error.message);
+          }
+
+          allJobs = allJobs.filter((entry) => entry.slug !== job.slug);
+          renderJobsList();
+        } catch (error) {
+          window.alert(error instanceof Error ? error.message : "Unable to delete this job.");
+        }
+      });
+
+      actionsCell.appendChild(actions);
+      row.append(jobCell, statusCell, updatedCell, actionsCell);
+      return row;
+    };
+
+    const renderJobsList = () => {
+      if (!jobsTableBody) {
+        return;
+      }
+
+      if (!allJobs.length) {
+        jobsTableBody.replaceChildren();
+        setJobsState("empty");
+        return;
+      }
+
+      const fragment = document.createDocumentFragment();
+      allJobs.forEach((job) => fragment.appendChild(createJobRow(job)));
+      jobsTableBody.replaceChildren(fragment);
+      setJobsState("ready");
+    };
+
+    const loadJobList = async () => {
+      if (!jobsList || !jobsTableBody) {
+        return;
+      }
+
+      setJobsState("loading");
+
+      try {
+        const { data, error } = await supabase
+          .from("stadium_jobs")
+          .select("slug, title, location, employment_type, published, updated_at")
+          .order("title");
+
+        if (error) {
+          throw new Error(error.message);
+        }
+
+        allJobs = Array.isArray(data) ? data : [];
+        renderJobsList();
+      } catch (error) {
+        console.error("Unable to load admin jobs", error);
+        setJobsState("error");
+      }
+    };
+
+    if (!supabase || !gate) {
+      setState("denied");
+    } else {
+      verifyAdminBrowserSession(supabase).then(async (verifiedSession) => {
+        if (!verifiedSession.ok) {
+          setState("denied");
+          redirectToLogin();
+          return;
+        }
+
+        if (emailElement) {
+          emailElement.textContent = verifiedSession.email ?? "";
+        }
+
+        setState("ready");
+        await loadClubCrests();
+        await loadClubOptions();
+        await loadJobList();
+      });
+
+      jobCreateForm?.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        const form = new FormData(jobCreateForm);
+        const title = String(form.get("jobTitle") ?? "").trim();
+        const club = String(form.get("jobClub") ?? "").trim();
+        const employmentType = String(form.get("jobType") ?? "").trim();
+
+        if (!title || !club || !employmentType) {
+          if (jobCreateStatus) {
+            jobCreateStatus.textContent = "Please complete the title, club and role type first.";
+            jobCreateStatus.classList.add("is-error");
+          }
+          return;
+        }
+
+        if (jobCreateStatus) {
+          jobCreateStatus.textContent = "Creating your new draft job.";
+          jobCreateStatus.classList.remove("is-error");
+        }
+
+        try {
+          const slug = slugifyJobTitle(title, club);
+          const { data: existing, error: existingError } = await supabase
+            .from("stadium_jobs")
+            .select("slug")
+            .eq("slug", slug)
+            .maybeSingle();
+
+          if (existingError) {
+            throw new Error(existingError.message);
+          }
+
+          if (existing?.slug) {
+            throw new Error("A job with that title already exists.");
+          }
+
+          const { data: draft, error } = await supabase
+            .from("stadium_jobs")
+            .insert({
+              slug,
+              title,
+              location: club,
+              employment_type: employmentType,
+              summary: null,
+              description: null,
+              content_sections: null,
+              salary: null,
+              hours: null,
+              job_location: null,
+              closing_date: null,
+              application_url: null,
+              contact_email: "office@stadiumexperience.com",
+              published: false
+            })
+            .select("slug, title")
+            .single();
+
+          if (error || !draft) {
+            throw new Error(error?.message ?? "Unable to create job");
+          }
+
+          if (jobCreateStatus) {
+            jobCreateStatus.textContent = `Draft created for ${draft.title}. Opening the editor.`;
+            jobCreateStatus.classList.remove("is-error");
+          }
+
+          window.location.href = `/admin/jobs/${draft.slug}/`;
+        } catch (error) {
+          if (jobCreateStatus) {
+            jobCreateStatus.textContent = error instanceof Error ? error.message : "Unable to create the job draft.";
+            jobCreateStatus.classList.add("is-error");
+          }
+        }
+      });
+
+      signOutButton?.addEventListener("click", async () => {
+        await signOutAdminBrowserSession(supabase);
+        redirectToLogin();
+      });
+    }
+  </script>
+</BaseLayout>

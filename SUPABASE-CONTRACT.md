@@ -32,6 +32,10 @@ The website repo can evolve these with much lower coordination risk, as long as 
 Current or proposed website-owned tables:
 
 - `club_pages`
+- `awards_programmes`
+- `awards_pages`
+- `awards_categories`
+- `stadium_jobs`
 
 Likely website-owned or website-first tables:
 
@@ -95,7 +99,9 @@ Before making a schema change:
 2. If shared or unknown, review the other app before changing anything.
 3. Prefer additive changes first.
 4. Avoid destructive changes unless both repos have been updated and verified.
-5. Update this contract if ownership or usage changes.
+5. Add a migration file under `supabase/migrations/` for the change.
+6. Update `supabase/schema.sql` so the snapshot stays current.
+7. Update this contract if ownership or usage changes.
 
 ## Club Page Migration Plan
 

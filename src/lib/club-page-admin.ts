@@ -3,7 +3,6 @@ import { slugifyClubName } from "./club-slugs";
 export type ClubPageEditorField =
   | "club_name"
   | "crest_url"
-  | "venue_name"
   | "summary"
   | "address"
   | "website_url"
@@ -26,7 +25,6 @@ export type ClubPageEditorRecord = {
   slug: string;
   club_name: string;
   crest_url: string | null;
-  venue_name: string | null;
   summary: string | null;
   address: string | null;
   website_url: string | null;
@@ -50,6 +48,7 @@ export type ClubPageEditorRecord = {
   christmas_image_url: string | null;
   play_on_pitch_image_url: string | null;
   published: boolean;
+  archived: boolean;
   created_at?: string;
   updated_at?: string;
 };
@@ -61,7 +60,6 @@ type ClubPageCreatePayload = {
 type ClubPageUpdatePayload = {
   club_name?: unknown;
   crest_url?: unknown;
-  venue_name?: unknown;
   summary?: unknown;
   address?: unknown;
   website_url?: unknown;
@@ -85,12 +83,12 @@ type ClubPageUpdatePayload = {
   christmas_image_url?: unknown;
   play_on_pitch_image_url?: unknown;
   published?: unknown;
+  archived?: unknown;
 };
 
 const stringFields: ClubPageEditorField[] = [
   "club_name",
   "crest_url",
-  "venue_name",
   "summary",
   "address",
   "website_url",
@@ -197,7 +195,16 @@ export function parseCreateClubPayload(input: unknown): { name: string; slug: st
   };
 }
 
-export function parseUpdateClubPayload(input: unknown): Omit<ClubPageEditorRecord, "created_at" | "updated_at"> | null {
+type ClubPageUpdateRecord = Partial<Omit<ClubPageEditorRecord, "created_at" | "updated_at">> & {
+  slug: string;
+  club_name: string;
+};
+
+function hasOwnField(payload: ClubPageUpdatePayload, field: keyof ClubPageUpdatePayload): boolean {
+  return Object.prototype.hasOwnProperty.call(payload, field);
+}
+
+export function parseUpdateClubPayload(input: unknown): ClubPageUpdateRecord | null {
   const payload = (input ?? {}) as ClubPageUpdatePayload;
   const clubName = asString(payload.club_name);
 
@@ -205,20 +212,46 @@ export function parseUpdateClubPayload(input: unknown): Omit<ClubPageEditorRecor
     return null;
   }
 
-  const record = {} as Omit<ClubPageEditorRecord, "created_at" | "updated_at">;
+  const record = {
+    slug: slugifyClubName(clubName),
+    club_name: clubName
+  } as ClubPageUpdateRecord;
 
   for (const field of stringFields) {
+    if (field === "club_name" || !hasOwnField(payload, field)) {
+      continue;
+    }
+
     record[field] = asString(payload[field]);
   }
 
-  record.slug = slugifyClubName(clubName);
-  record.club_name = clubName;
-  record.social_links = asLinkArray(payload.social_links);
-  record.introduction_paragraphs = asStringArray(payload.introduction_paragraphs);
-  record.spaces = asBlockArray(payload.spaces);
-  record.events = asBlockArray(payload.events);
-  record.key_facts = asFactArray(payload.key_facts);
-  record.published = asBoolean(payload.published);
+  if (hasOwnField(payload, "social_links")) {
+    record.social_links = asLinkArray(payload.social_links);
+  }
+
+  if (hasOwnField(payload, "introduction_paragraphs")) {
+    record.introduction_paragraphs = asStringArray(payload.introduction_paragraphs);
+  }
+
+  if (hasOwnField(payload, "spaces")) {
+    record.spaces = asBlockArray(payload.spaces);
+  }
+
+  if (hasOwnField(payload, "events")) {
+    record.events = asBlockArray(payload.events);
+  }
+
+  if (hasOwnField(payload, "key_facts")) {
+    record.key_facts = asFactArray(payload.key_facts);
+  }
+
+  if (hasOwnField(payload, "published")) {
+    record.published = asBoolean(payload.published);
+  }
+
+  if (hasOwnField(payload, "archived")) {
+    record.archived = asBoolean(payload.archived);
+  }
 
   return record;
 }
@@ -228,7 +261,6 @@ export function makeEmptyClubDraft(name: string, crestUrl: string | null) {
     slug: slugifyClubName(name),
     club_name: name,
     crest_url: crestUrl,
-    venue_name: null,
     summary: null,
     address: null,
     website_url: null,
@@ -251,7 +283,8 @@ export function makeEmptyClubDraft(name: string, crestUrl: string | null) {
     hero_image_url: null,
     christmas_image_url: null,
     play_on_pitch_image_url: null,
-    published: false
+    published: false,
+    archived: false
   };
 }
 

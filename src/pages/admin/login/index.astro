@@ -67,6 +67,7 @@ const hasSupabaseAuth =
   </section>
 
   <script>
+    import { verifyAdminBrowserSession } from "../../../lib/admin-browser-auth";
     import { getBrowserSupabase } from "../../../lib/supabase-browser";
 
     const supabase = getBrowserSupabase();
@@ -95,8 +96,15 @@ const hasSupabaseAuth =
     };
 
     if (supabase) {
-      supabase.auth.getSession().then(({ data }) => {
+      supabase.auth.getSession().then(async ({ data }) => {
         if (data.session) {
+          const verifiedSession = await verifyAdminBrowserSession(supabase);
+
+          if (!verifiedSession.ok) {
+            setStatus(verifiedSession.message, true);
+            return;
+          }
+
           redirectToAdmin();
         }
       });
@@ -121,6 +129,13 @@ const hasSupabaseAuth =
           return;
         }
 
+        const verifiedSession = await verifyAdminBrowserSession(supabase);
+
+        if (!verifiedSession.ok) {
+          setStatus(verifiedSession.message, true);
+          return;
+        }
+
         redirectToAdmin();
       });
 
@@ -137,7 +152,7 @@ const hasSupabaseAuth =
         const { error } = await supabase.auth.signInWithOtp({
           email,
           options: {
-            emailRedirectTo: `${window.location.origin}/admin/`
+            emailRedirectTo: `${window.location.origin}/admin/login/`
           }
         });
 

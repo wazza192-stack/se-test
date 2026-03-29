@@ -1,0 +1,579 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Edit News Article" description="Edit and publish Stadium Experience news articles." chrome="admin">
+  <section class="page-hero page-hero-tight">
+    <p class="eyebrow">Admin</p>
+    <h1>Edit news article</h1>
+    <p class="lede">
+      Shape each article in draft, review the live-style preview, then publish when the story is ready.
+    </p>
+  </section>
+
+  <section class="section section-tight">
+    <div class="admin-gate" data-admin-gate>
+      <div class="directory-message-card" data-admin-loading>
+        <p class="eyebrow">Checking access</p>
+        <h3>Verifying your session.</h3>
+        <p>Please wait while we confirm your admin login.</p>
+      </div>
+
+      <div class="directory-message-card" data-admin-denied hidden>
+        <p class="eyebrow">Sign-in required</p>
+        <h3>You need to sign in before accessing the admin area.</h3>
+        <p><a class="text-link" href="/admin/login/">Go to admin login</a></p>
+      </div>
+
+      <div class="admin-dashboard" data-admin-ready hidden>
+        <div class="admin-toolbar">
+          <div>
+            <p class="eyebrow">News editor</p>
+            <h2 class="club-section-title" data-editor-heading>Loading article</h2>
+            <p class="admin-user-email" data-admin-email></p>
+          </div>
+          <div class="admin-toolbar-actions">
+            <a class="button button-secondary" href="/admin/news/">Back to news</a>
+            <button class="button button-secondary" type="button" data-admin-signout>Sign out</button>
+          </div>
+        </div>
+
+        <nav class="admin-page-tabs" aria-label="Admin sections">
+          <a class="admin-page-tab" href="/admin/">Club data</a>
+          <a class="admin-page-tab" href="/admin/jobs/">Stadium Jobs</a>
+          <a class="admin-page-tab is-active" href="/admin/news/" aria-current="page">Latest News</a>
+        </nav>
+
+        <div class="admin-editor-workspace admin-editor-workspace-full">
+          <div class="admin-editor-main">
+            <div class="card admin-card admin-editor-shell">
+              <div class="admin-editor-meta">
+                <div>
+                  <p class="eyebrow">Editorial workflow</p>
+                  <h3 data-editor-meta-title>Draft article</h3>
+                </div>
+                <span class="admin-status-pill is-draft" data-editor-status>Draft</span>
+              </div>
+
+              <p class="admin-auth-status" data-editor-status-message></p>
+
+              <form class="admin-editor-form" data-editor-form>
+                <div class="admin-form-grid">
+                  <label class="full-width">
+                    Article title *
+                    <input type="text" name="title" required />
+                  </label>
+
+                  <label>
+                    URL slug *
+                    <input type="text" name="slug" required />
+                  </label>
+
+                  <label>
+                    Publish date *
+                    <input type="date" name="published_at" required />
+                  </label>
+
+                  <label class="full-width">
+                    Excerpt *
+                    <textarea
+                      name="excerpt"
+                      rows="3"
+                      placeholder="Short summary for the listing page and the article intro."
+                      required
+                    ></textarea>
+                  </label>
+
+                  <label class="full-width">
+                    Cover image URL
+                    <input type="url" name="cover_image_url" placeholder="https://..." />
+                  </label>
+                  <p class="admin-media-advice full-width" data-image-advice="cover_image_url">
+                    Add an owned image URL or a local /assets/... path.
+                  </p>
+                  <div class="admin-media-upload full-width">
+                    <label class="admin-media-upload-field">
+                      <span>Upload cover image</span>
+                      <input type="file" accept="image/*" data-upload-input="cover_image_url" />
+                    </label>
+                    <button class="button button-secondary button-compact" type="button" data-upload-button="cover_image_url">
+                      Upload to Media Library
+                    </button>
+                    <p class="admin-inline-status" data-upload-status="cover_image_url" aria-live="polite"></p>
+                  </div>
+
+                  <label class="full-width">
+                    Article body *
+                    <textarea
+                      name="body"
+                      rows="16"
+                      placeholder="Write the article here. Use a blank line between paragraphs."
+                      required
+                    ></textarea>
+                  </label>
+
+                  <div class="full-width admin-repeater">
+                    <div class="admin-section-heading">
+                      <div>
+                        <p class="eyebrow">Search and sharing</p>
+                        <h3>SEO settings</h3>
+                      </div>
+                    </div>
+
+                    <p class="admin-club-meta">
+                      Leave these blank to let the article title, excerpt and default image do the work.
+                    </p>
+
+                    <div class="admin-form-grid">
+                      <label class="full-width">
+                        Meta title
+                        <input type="text" name="seo_meta_title" placeholder="Optional search title override" />
+                      </label>
+
+                      <label class="full-width">
+                        Meta description
+                        <textarea
+                          name="seo_meta_description"
+                          rows="3"
+                          placeholder="Optional search description override"
+                        ></textarea>
+                      </label>
+
+                      <label class="full-width">
+                        Open Graph title
+                        <input type="text" name="seo_og_title" placeholder="Optional social title override" />
+                      </label>
+
+                      <label class="full-width">
+                        Open Graph description
+                        <textarea
+                          name="seo_og_description"
+                          rows="3"
+                          placeholder="Optional social description override"
+                        ></textarea>
+                      </label>
+
+                      <label class="full-width">
+                        Open Graph image URL
+                        <input type="url" name="seo_og_image" placeholder="https://..." />
+                      </label>
+                      <p class="admin-media-advice full-width" data-image-advice="seo_og_image">
+                        Add an owned image URL or a local /assets/... path.
+                      </p>
+
+                      <label class="full-width">
+                        Canonical URL
+                        <input type="url" name="seo_canonical_url" placeholder="Optional absolute canonical URL" />
+                      </label>
+
+                      <label class="full-width admin-checkbox-field">
+                        <input type="checkbox" name="seo_noindex" />
+                        <span>Hide this article from search engines</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="admin-editor-actions admin-editor-actions-sticky">
+                  <div class="admin-publish-panel">
+                    <strong data-publish-status-label>Draft article</strong>
+                    <span data-publish-status-note>This article only appears on the public website after you publish it.</span>
+                  </div>
+                  <div class="admin-editor-actions-group">
+                    <a class="button button-secondary" href="/admin/news/">Back to news</a>
+                    <button class="button button-secondary" type="button" data-save-draft>Save draft</button>
+                    <button class="button button-primary" type="button" data-publish-article>Publish article</button>
+                    <button class="button button-secondary" type="button" data-preview-article>View page preview</button>
+                    <button class="button button-danger" type="button" data-delete-article>Delete article</button>
+                    <a class="text-link" href="#" data-live-link target="_blank" rel="noreferrer" hidden>View live article</a>
+                  </div>
+                  <p class="admin-inline-status" data-inline-save-status aria-live="polite"></p>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    import { signOutAdminBrowserSession, verifyAdminBrowserSession } from "../../../lib/admin-browser-auth";
+    import { uploadAdminMediaFile } from "../../../lib/admin-media-browser";
+    import { assessImageUrl } from "../../../lib/media";
+    import { buildNewsBodyText, normaliseNewsBody, normaliseNewsSeo, slugifyNewsPostTitle } from "../../../lib/news-posts";
+    import { getBrowserSupabase } from "../../../lib/supabase-browser";
+
+    const slug = window.location.pathname.split("/").filter(Boolean).pop();
+    const supabase = getBrowserSupabase();
+    const gate = document.querySelector("[data-admin-gate]");
+    const loading = document.querySelector("[data-admin-loading]");
+    const denied = document.querySelector("[data-admin-denied]");
+    const ready = document.querySelector("[data-admin-ready]");
+    const emailElement = document.querySelector("[data-admin-email]");
+    const signOutButton = document.querySelector("[data-admin-signout]");
+    const editorHeading = document.querySelector("[data-editor-heading]");
+    const editorMetaTitle = document.querySelector("[data-editor-meta-title]");
+    const editorStatus = document.querySelector("[data-editor-status]");
+    const editorStatusMessage = document.querySelector("[data-editor-status-message]");
+    const inlineSaveStatus = document.querySelector("[data-inline-save-status]");
+    const editorForm = document.querySelector("[data-editor-form]");
+    const liveLink = document.querySelector("[data-live-link]");
+    const saveDraftButton = document.querySelector("[data-save-draft]");
+    const publishButton = document.querySelector("[data-publish-article]");
+    const previewButton = document.querySelector("[data-preview-article]");
+    const deleteButton = document.querySelector("[data-delete-article]");
+    const publishStatusLabel = document.querySelector("[data-publish-status-label]");
+    const publishStatusNote = document.querySelector("[data-publish-status-note]");
+    let currentSlug = slug;
+    let currentPublished = false;
+
+    const setState = (state) => {
+      loading.hidden = state !== "loading";
+      denied.hidden = state !== "denied";
+      ready.hidden = state !== "ready";
+    };
+
+    const redirectToLogin = () => {
+      window.location.href = "/admin/login/";
+    };
+
+    const setSaveMessage = (message, isError = false) => {
+      if (!editorStatusMessage) return;
+      editorStatusMessage.textContent = message;
+      editorStatusMessage.classList.toggle("is-error", isError);
+    };
+
+    const setInlineSaveMessage = (message, isError = false) => {
+      if (!inlineSaveStatus) return;
+      inlineSaveStatus.textContent = message;
+      inlineSaveStatus.classList.toggle("is-error", isError);
+    };
+
+    const assignField = (name, value) => {
+      const field = editorForm?.elements.namedItem(name);
+      if (field && "value" in field) {
+        field.value = value ?? "";
+      }
+    };
+
+    const assignCheckbox = (name, checked) => {
+      const field = editorForm?.elements.namedItem(name);
+      if (field && "checked" in field) {
+        field.checked = checked === true;
+      }
+    };
+
+    const renderImageAdvice = (fieldName, value) => {
+      const note = document.querySelector(`[data-image-advice="${fieldName}"]`);
+
+      if (!note) {
+        return;
+      }
+
+      const assessment = assessImageUrl(value);
+      note.textContent = assessment.guidance;
+      note.classList.toggle("is-warning", assessment.kind === "legacy-wordpress" || assessment.kind === "external" || assessment.kind === "invalid");
+      note.classList.toggle("is-positive", assessment.isOwned && assessment.kind !== "empty");
+    };
+
+    const setUploadStatus = (fieldName, message, isError = false) => {
+      const element = document.querySelector(`[data-upload-status="${fieldName}"]`);
+
+      if (!element) {
+        return;
+      }
+
+      element.textContent = message;
+      element.classList.toggle("is-error", isError);
+    };
+
+    const setPublishedUi = (published, slugValue) => {
+      currentPublished = Boolean(published);
+
+      if (editorStatus) {
+        editorStatus.textContent = published ? "Published" : "Draft";
+        editorStatus.classList.toggle("is-published", published);
+        editorStatus.classList.toggle("is-draft", !published);
+      }
+
+      if (publishStatusLabel) {
+        publishStatusLabel.textContent = published ? "Published article" : "Draft article";
+      }
+
+      if (publishStatusNote) {
+        publishStatusNote.textContent = published
+          ? "This article is live on the public website."
+          : "This article only appears on the public website after you publish it.";
+      }
+
+      if (liveLink && slugValue) {
+        liveLink.hidden = !published;
+        liveLink.href = `/latest-news/${slugValue}/`;
+      }
+    };
+
+    const buildSeoPayload = () => {
+      const payload = {
+        metaTitle: String(editorForm?.elements.namedItem("seo_meta_title")?.value ?? "").trim() || null,
+        metaDescription: String(editorForm?.elements.namedItem("seo_meta_description")?.value ?? "").trim() || null,
+        canonicalUrl: String(editorForm?.elements.namedItem("seo_canonical_url")?.value ?? "").trim() || null,
+        ogTitle: String(editorForm?.elements.namedItem("seo_og_title")?.value ?? "").trim() || null,
+        ogDescription: String(editorForm?.elements.namedItem("seo_og_description")?.value ?? "").trim() || null,
+        ogImage: String(editorForm?.elements.namedItem("seo_og_image")?.value ?? "").trim() || null,
+        socialImage: String(editorForm?.elements.namedItem("seo_og_image")?.value ?? "").trim() || null,
+        noindex: editorForm?.elements.namedItem("seo_noindex")?.checked === true
+      };
+
+      return normaliseNewsSeo(payload);
+    };
+
+    const fetchArticle = async (articleSlug) => {
+      const { data, error } = await supabase
+        .from("news_posts")
+        .select("slug, title, excerpt, body, cover_image_url, seo, published, published_at, created_at, updated_at")
+        .eq("slug", articleSlug)
+        .maybeSingle();
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      return data;
+    };
+
+    const populateForm = (article) => {
+      if (editorHeading) editorHeading.textContent = article.title;
+      if (editorMetaTitle) editorMetaTitle.textContent = article.title;
+      assignField("title", article.title);
+      assignField("slug", article.slug);
+      assignField("published_at", article.published_at);
+      assignField("excerpt", article.excerpt);
+      assignField("cover_image_url", article.cover_image_url);
+      assignField("body", buildNewsBodyText(normaliseNewsBody(article.body)));
+
+      const seo = normaliseNewsSeo(article.seo);
+      assignField("seo_meta_title", seo?.metaTitle);
+      assignField("seo_meta_description", seo?.metaDescription);
+      assignField("seo_canonical_url", seo?.canonicalUrl);
+      assignField("seo_og_title", seo?.ogTitle);
+      assignField("seo_og_description", seo?.ogDescription);
+      assignField("seo_og_image", seo?.ogImage ?? seo?.socialImage);
+      assignCheckbox("seo_noindex", seo?.noindex);
+      renderImageAdvice("cover_image_url", article.cover_image_url);
+      renderImageAdvice("seo_og_image", seo?.ogImage ?? seo?.socialImage);
+
+      currentSlug = article.slug;
+      setPublishedUi(article.published, article.slug);
+      setSaveMessage(article.published ? "This article is currently live on the public site." : "This article is still safely in draft.");
+    };
+
+    const loadEditor = async () => {
+      if (!slug) {
+        setSaveMessage("Article slug is missing from the URL.", true);
+        return;
+      }
+
+      try {
+        const data = await fetchArticle(slug);
+
+        if (!data) {
+          throw new Error("Unable to load this article.");
+        }
+
+        populateForm(data);
+      } catch (error) {
+        setSaveMessage(error instanceof Error ? error.message : "Unable to load this article.", true);
+      }
+    };
+
+    const saveArticle = async (published) => {
+      setSaveMessage(published ? "Publishing article." : "Saving draft.");
+      setInlineSaveMessage(published ? "Publishing article..." : "Saving draft...");
+
+      try {
+        const previousSlug = currentSlug;
+        const title = String(editorForm?.elements.namedItem("title")?.value ?? "").trim();
+        const rawSlug = String(editorForm?.elements.namedItem("slug")?.value ?? "").trim();
+        const publishDate = String(editorForm?.elements.namedItem("published_at")?.value ?? "").trim();
+        const excerpt = String(editorForm?.elements.namedItem("excerpt")?.value ?? "").trim();
+        const coverImageUrl = String(editorForm?.elements.namedItem("cover_image_url")?.value ?? "").trim();
+        const body = String(editorForm?.elements.namedItem("body")?.value ?? "").replace(/\r\n/g, "\n").trim();
+        const normalisedSlug = slugifyNewsPostTitle(rawSlug || title);
+        const paragraphs = normaliseNewsBody(body);
+        const seo = buildSeoPayload();
+
+        if (!title || !normalisedSlug || !publishDate || !excerpt || !paragraphs.length) {
+          throw new Error("Please complete the title, slug, publish date, excerpt and body first.");
+        }
+
+        if (normalisedSlug !== currentSlug) {
+          const { data: existing, error: existingError } = await supabase
+            .from("news_posts")
+            .select("slug")
+            .eq("slug", normalisedSlug)
+            .maybeSingle();
+
+          if (existingError) {
+            throw new Error(existingError.message);
+          }
+
+          if (existing?.slug) {
+            throw new Error("Another article already uses that slug.");
+          }
+        }
+
+        const { error } = await supabase
+          .from("news_posts")
+          .update({
+            slug: normalisedSlug,
+            title,
+            excerpt,
+            body: buildNewsBodyText(paragraphs),
+            cover_image_url: coverImageUrl || null,
+            seo,
+            published,
+            published_at: publishDate,
+            updated_at: new Date().toISOString()
+          })
+          .eq("slug", currentSlug);
+
+        if (error) {
+          throw new Error(error.message);
+        }
+
+        const article = await fetchArticle(normalisedSlug);
+
+        if (!article) {
+          throw new Error("Unable to reload the article after saving.");
+        }
+
+        populateForm(article);
+
+        if (article.slug !== previousSlug) {
+          window.history.replaceState({}, "", `/admin/news/${article.slug}/`);
+        }
+
+        setSaveMessage(published ? "Article published. It will now appear live on the news page." : "Draft saved.");
+        setInlineSaveMessage(published ? "Published successfully." : "Draft saved successfully.");
+      } catch (error) {
+        setSaveMessage(error instanceof Error ? error.message : "Unable to save the article.", true);
+        setInlineSaveMessage(error instanceof Error ? error.message : "Unable to save the article.", true);
+      }
+    };
+
+    const deleteArticle = async () => {
+      const title = String(editorForm?.elements.namedItem("title")?.value ?? "").trim() || "this article";
+      const confirmed = window.confirm(`Delete ${title}? This will remove the article from the site.`);
+
+      if (!confirmed) {
+        return;
+      }
+
+      setSaveMessage("Deleting article.");
+
+      try {
+        const { error } = await supabase.from("news_posts").delete().eq("slug", currentSlug);
+
+        if (error) {
+          throw new Error(error.message);
+        }
+
+        window.location.href = "/admin/news/";
+      } catch (error) {
+        setSaveMessage(error instanceof Error ? error.message : "Unable to delete the article.", true);
+      }
+    };
+
+    const openPreview = async () => {
+      const previewSlug = currentSlug || slug;
+
+      if (!previewSlug) {
+        setInlineSaveMessage("Save this article first before opening a preview.", true);
+        return;
+      }
+
+      window.open(`/admin/news/${previewSlug}/preview/`, "_blank", "noopener,noreferrer");
+    };
+
+    const wireMediaUpload = (fieldName) => {
+      const input = document.querySelector(`[data-upload-input="${fieldName}"]`);
+      const button = document.querySelector(`[data-upload-button="${fieldName}"]`);
+
+      if (!input || !button) {
+        return;
+      }
+
+      button.addEventListener("click", async () => {
+        const file = input.files?.[0];
+
+        if (!file) {
+          setUploadStatus(fieldName, "Choose an image file first.", true);
+          return;
+        }
+
+        const title = String(editorForm?.elements.namedItem("title")?.value ?? "").trim();
+        const rawSlug = String(editorForm?.elements.namedItem("slug")?.value ?? "").trim();
+        const publishDate = String(editorForm?.elements.namedItem("published_at")?.value ?? "").trim();
+        const newsSlug = slugifyNewsPostTitle(rawSlug || title || currentSlug || "draft-article");
+
+        button.disabled = true;
+        setUploadStatus(fieldName, "Uploading image...");
+
+        try {
+          const uploaded = await uploadAdminMediaFile({
+            file,
+            target: {
+              kind: "news",
+              slug: newsSlug,
+              publishedAt: publishDate || null,
+              slot: "cover"
+            }
+          }, supabase);
+
+          assignField(fieldName, uploaded.url);
+          renderImageAdvice(fieldName, uploaded.url);
+          setUploadStatus(fieldName, "Image uploaded.");
+          input.value = "";
+        } catch (error) {
+          setUploadStatus(fieldName, error instanceof Error ? error.message : "Unable to upload the image.", true);
+        } finally {
+          button.disabled = false;
+        }
+      });
+    };
+
+    if (!supabase || !gate) {
+      setState("denied");
+    } else {
+      verifyAdminBrowserSession(supabase).then((verifiedSession) => {
+        if (!verifiedSession.ok) {
+          setState("denied");
+          redirectToLogin();
+          return;
+        }
+
+        if (emailElement) {
+          emailElement.textContent = verifiedSession.email ?? "";
+        }
+
+        setState("ready");
+        loadEditor();
+      });
+
+      saveDraftButton?.addEventListener("click", () => saveArticle(false));
+      publishButton?.addEventListener("click", () => saveArticle(true));
+      previewButton?.addEventListener("click", openPreview);
+      deleteButton?.addEventListener("click", deleteArticle);
+      ["cover_image_url", "seo_og_image"].forEach((fieldName) => {
+        const field = editorForm?.elements.namedItem(fieldName);
+        field?.addEventListener("input", () => renderImageAdvice(fieldName, field.value));
+      });
+      wireMediaUpload("cover_image_url");
+      signOutButton?.addEventListener("click", async () => {
+        await signOutAdminBrowserSession(supabase);
+        redirectToLogin();
+      });
+    }
+  </script>
+</BaseLayout>

@@ -1,108 +1,117 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import { enquiryBenefits, enquirySteps, plannerTrustPoints } from "../../data/site";
+import { enquirySteps } from "../../data/site";
 import { getVenues } from "../../lib/content";
 
 const venues = await getVenues();
+const preselectedVenueSlug = Astro.url.searchParams.get("venue")?.trim() ?? "";
 ---
 
 <BaseLayout
   title="Enquire"
   description="Venue enquiry form for Stadium Experience venues, awards and supplier opportunities."
 >
-  <section class="page-hero">
-    <p class="eyebrow">Enquire</p>
-    <h1>Send a clear brief and we will route it to the right team.</h1>
-    <p class="lede">
-      Use one enquiry form for venue bookings, membership, supplier opportunities and awards
-      questions, with a cleaner hand-off behind the scenes.
-    </p>
+  <section class="page-hero enquire-hero">
+    <div class="enquire-hero-copy">
+      <p class="eyebrow">Venue enquiries</p>
+      <h1>Complete the form below to contact a stadium venue with your event enquiry.</h1>
+      <p class="lede">
+        Stadium Experience helps planners connect with football, rugby and cricket venues across
+        the UK. Share the essentials once and we will route your enquiry to the right venue or
+        team without unnecessary hand-offs.
+      </p>
+      <ul class="enquire-hero-points">
+        <li>Commission-free venue enquiries</li>
+        <li>One brief for single or multiple venue options</li>
+        <li>Support from the Stadium Experience team when needed</li>
+      </ul>
+      <div class="intro-actions">
+        <a class="button button-primary" href="/venues/">Browse venues</a>
+        <a class="button button-secondary" href="/venues/venue-guide/">Download venue guide</a>
+      </div>
+    </div>
   </section>
 
   <section class="section section-tight">
-    <div class="listing-shell">
-      <div class="listing-main">
-        <form class="enquiry-form enquiry-form-rich" method="post" action="/api/enquiries">
-          <label>
-            Name
-            <input type="text" name="name" required />
-          </label>
-          <label>
-            Email
-            <input type="email" name="email" required />
-          </label>
-          <label>
-            Company
-            <input type="text" name="companyName" />
-          </label>
-          <label>
-            Enquiry type
-            <select name="enquiryType" required>
-              <option value="venue">Venue booking</option>
-              <option value="membership">Membership</option>
-              <option value="supplier">Supplier</option>
-              <option value="awards">Awards</option>
-            </select>
-          </label>
-          <label>
-            Venue
-            <select name="venueId">
-              <option value="">General enquiry</option>
-              {venues.map((venue) => (
-                <option value={venue.slug}>{venue.name}</option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Expected guests
-            <select name="guestCount">
-              <option value="">Select if known</option>
-              <option value="under-100">Up to 100</option>
-              <option value="100-250">100 - 250</option>
-              <option value="250-500">250 - 500</option>
-              <option value="500-plus">500+</option>
-            </select>
-          </label>
-          <label class="full-width">
-            Message
-            <textarea name="message" rows="6" required></textarea>
-          </label>
-          <div class="full-width enquiry-actions">
-            <button class="button button-primary" type="submit">Send enquiry</button>
-            <p class="form-note">
-              Your enquiry goes directly into the Stadium Experience routing flow so it reaches the
-              right venue or team quickly.
-            </p>
+    <div class="enquire-shell">
+      <div class="enquire-main">
+        <article class="enquire-form-panel">
+          <div class="enquire-form-intro">
+            <p class="eyebrow">Venue enquiry form</p>
+            <h2>Share your event brief</h2>
+            <p>Share your contact details and event brief below and we will route it to the right venue team.</p>
           </div>
-        </form>
-      </div>
-      <aside class="listing-sidebar">
-        <article class="card sidebar-card">
-          <p class="eyebrow">Why this works</p>
-          <h3>A better enquiry experience for planners and venues.</h3>
-          <ul class="feature-list">
-            {enquiryBenefits.map((benefit) => (
-              <li>{benefit}</li>
-            ))}
-          </ul>
+
+          <form class="enquiry-form enquiry-form-rich" method="post" action="/api/enquiries">
+            <section class="enquire-form-section">
+              <div class="enquire-form-grid">
+                <label>
+                  Name *
+                  <input type="text" name="name" required />
+                </label>
+                <label>
+                  Email *
+                  <input type="email" name="email" required />
+                </label>
+                <label>
+                  Telephone *
+                  <input type="tel" name="telephone" required />
+                </label>
+                <label>
+                  Date of event
+                  <input type="date" name="eventDate" />
+                </label>
+              </div>
+            </section>
+
+            <section class="enquire-form-section">
+              <h3>Your event brief</h3>
+              <div class="enquire-form-grid">
+                <label>
+                  Venue *
+                  <select name="venueId" required>
+                    <option value="" disabled selected={!preselectedVenueSlug}>Select venue</option>
+                    {venues.map((venue) => (
+                      <option value={venue.slug} selected={venue.slug === preselectedVenueSlug}>{venue.name}</option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Expected guests *
+                  <input type="number" name="guestCount" min="1" step="1" inputmode="numeric" required />
+                </label>
+                <label class="full-width">
+                  Message *
+                  <textarea
+                    name="message"
+                    rows="6"
+                    required
+                    placeholder="Tell us about your event, preferred location or venue, dates, guest numbers and anything else that will help the team respond quickly."
+                  ></textarea>
+                </label>
+              </div>
+            </section>
+
+            <div class="full-width enquiry-actions">
+              <button class="button button-primary" type="submit">Send enquiry</button>
+              <p class="form-note">
+                Your enquiry goes directly into the Stadium Experience routing flow so it reaches
+                the right venue or team quickly.
+              </p>
+            </div>
+          </form>
         </article>
-        <article class="card sidebar-card">
+
+        <article class="card sidebar-card enquire-next-panel">
           <p class="eyebrow">What happens next</p>
+          <h3>We route the enquiry and keep the next step straightforward.</h3>
           <ol class="process-list">
             {enquirySteps.map((step) => (
               <li>{step}</li>
             ))}
           </ol>
         </article>
-        <article class="card sidebar-card">
-          <p class="eyebrow">Planner reassurance</p>
-          <ul class="tag-list tag-list-plain">
-            {plannerTrustPoints.map((point) => (
-              <li>{point}</li>
-            ))}
-          </ul>
-        </article>
-      </aside>
+      </div>
     </div>
   </section>
 </BaseLayout>

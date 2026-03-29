@@ -1,0 +1,30 @@
+---
+import type { AwardsSectionBlock } from "../../data/awards";
+
+type Props = {
+  sections: AwardsSectionBlock[];
+};
+
+const { sections } = Astro.props;
+---
+
+{sections.length > 0 && (
+  <div class="awards-sections">
+    {sections.map((section) => (
+      <section class:list={["card", "info-card", "awards-section-card", section.tone === "callout" && "awards-section-card-callout"]}>
+        {section.eyebrow && <p class="eyebrow">{section.eyebrow}</p>}
+        <h2>{section.heading}</h2>
+
+        <div class="stack">
+          {section.body.map((paragraph) => <p>{paragraph}</p>)}
+        </div>
+
+        {section.items && section.items.length > 0 && (
+          <ul class="feature-list awards-feature-list">
+            {section.items.map((item) => <li>{item}</li>)}
+          </ul>
+        )}
+      </section>
+    ))}
+  </div>
+)}

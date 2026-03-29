@@ -1,4 +1,5 @@
 import { supabase } from "./supabase";
+import { stripLegacyImageUrl } from "./media";
 import { slugifyClubName } from "./club-slugs";
 
 export type ClubDirectoryApiItem = {
@@ -33,7 +34,7 @@ export function normalizeClubDirectoryClub(input: ClubDirectoryApiItem): ClubDir
 
   return {
     name: input.name.trim(),
-    crestUrl: isNonEmptyString(input.crest_url) ? input.crest_url.trim() : null
+    crestUrl: isNonEmptyString(input.crest_url) ? stripLegacyImageUrl(input.crest_url.trim()) : null
   };
 }
 
@@ -93,7 +94,7 @@ export async function getPublishedSupabaseClubs(): Promise<ClubDirectoryClub[]> 
 
   return data.map((row) => ({
     name: row.club_name,
-    crestUrl: row.crest_url
+    crestUrl: stripLegacyImageUrl(row.crest_url)
   }));
 }
 

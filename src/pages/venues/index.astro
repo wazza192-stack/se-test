@@ -1,23 +1,24 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import ClubDirectory from "../../components/ClubDirectory.astro";
-import { eventCategories, plannerTrustPoints, testimonials, venueSearchBenefits } from "../../data/site";
 import { getVenues } from "../../lib/content";
 
 const venues = await getVenues();
-const featuredRegions = [...new Set(venues.map((venue) => venue.region))];
 const venueFinderData = venues.map((venue) => ({
   ...venue,
-  searchTerms: [
-    venue.name,
-    venue.city,
-    venue.region,
-    venue.summary,
-    ...venue.eventTypes,
-    ...venue.features
-  ]
-    .join(" ")
-    .toLowerCase()
+  point:
+    typeof venue.latitude === "number" && typeof venue.longitude === "number"
+      ? {
+          lat: venue.latitude,
+          lng: venue.longitude
+        }
+      : null,
+  mapQuery:
+    venue.address && venue.address.trim()
+      ? venue.address
+      : venue.city && venue.city !== "UK venue"
+      ? [venue.city, venue.region, "United Kingdom"].filter(Boolean).join(", ")
+      : [venue.name, "United Kingdom"].filter(Boolean).join(", ")
 }));
 ---
 
@@ -25,36 +26,56 @@ const venueFinderData = venues.map((venue) => ({
   title="Venues"
   description="Search unique sporting venues across the UK for conferences, meetings and events."
 >
-  <section class="page-hero">
-    <p class="eyebrow">Venues</p>
-    <h1>Search all venues across the Stadium Experience network.</h1>
-    <p class="lede">
-      Explore football, rugby and cricket venues across the UK for meetings, conferences,
-      hospitality, awards dinners and celebrations.
-    </p>
-  </section>
-
   <section class="section section-tight">
-    <div class="listing-shell">
-      <div class="listing-main">
+    <div class="listing-main">
+        <section class="venues-intro-band card">
+          <div class="venues-intro-copy">
+            <p class="eyebrow">Stadium Venue Hire</p>
+            <h1>Over 70 sporting venues across the UK.</h1>
+            <p class="lede">
+              Stadium Experience works with over 70 major football, rugby and cricket club venues
+              across the UK. These unique and prestigious stadium venues are ideal for hosting
+              conferences, meetings, exhibitions, events, parties, weddings and more.
+            </p>
+            <div class="intro-actions">
+              <a class="button button-primary" href="/venues/venue-guide/">Download Our Stadium Venue Guide</a>
+              <a class="button button-secondary" href="/venues/christmas-parties/">View Latest Stadium Special Offers</a>
+              <a class="button button-secondary" href="/enquire/">Start Your Venue Enquiry</a>
+            </div>
+          </div>
+          <div class="venues-intro-visual">
+            <div class="venues-intro-image-wrap">
+              <img
+                class="venues-intro-image"
+                src="/assets/stadium-experience/headingley.jpg"
+                alt="Stadium hospitality dining space set for an event"
+                loading="eager"
+              />
+            </div>
+            <ul class="venues-intro-points">
+              <li>Box hire</li>
+              <li>Christmas parties</li>
+              <li>Matchday hospitality</li>
+              <li>Play on pitch experiences</li>
+            </ul>
+          </div>
+        </section>
+
         <div class="section-heading section-heading-compact">
           <p class="eyebrow">Find a stadium in your area</p>
-          <h2>Search by postcode, city, club or stadium name.</h2>
+          <h2>Find a venue in your area.</h2>
           <p class="lede">
-            Start with the location you know best and narrow down the most relevant stadium venues
-            quickly, with direct routes to venue details and enquiry.
+            Enter the location you know best and we will show matching stadium venues on a map,
+            then list them in order from nearest to furthest.
           </p>
         </div>
+
         <div class="search-card venue-area-finder">
           <div class="search-heading venue-area-finder-heading">
             <div>
               <p class="eyebrow">Area finder</p>
-              <h3>Find nearby venue options fast.</h3>
+              <h3>Search first to see nearby venue options.</h3>
             </div>
-            <p class="search-subtitle">
-              Enter a postcode, town, city, club or stadium name and we will filter the current
-              venue list instantly.
-            </p>
           </div>
 
           <form class="venue-area-form" data-venue-area-form>
@@ -63,147 +84,1105 @@ const venueFinderData = venues.map((venue) => ({
               <input
                 type="search"
                 name="location"
-                placeholder="Try London, Leeds, Birmingham or a postcode"
+                placeholder="Try Leeds, Birmingham or SW1A 1AA"
                 autocomplete="off"
                 data-venue-search-input
               />
             </label>
-            <button class="button button-primary venue-area-button" type="submit">Search venues</button>
+            <label class="venue-area-field venue-area-field-compact">
+              <span class="filter-label">Distance</span>
+              <select name="distance" data-venue-distance-filter>
+                <option value="25">25 miles</option>
+                <option value="50" selected>50 miles</option>
+                <option value="100">100 miles</option>
+                <option value="150">150 miles</option>
+              </select>
+            </label>
+            <div class="venue-area-actions">
+              <button class="button button-primary venue-area-button" type="submit">Find nearby venues</button>
+              <button class="button button-secondary venue-area-button" type="button" data-venue-show-all>Show all venues</button>
+              <button class="button button-secondary venue-area-button" type="button" data-venue-clear-results>Clear search</button>
+            </div>
           </form>
-
-          <div class="filter-bar filter-bar-rich venue-area-meta">
-            <div>
-              <span class="filter-label">Regions</span>
-              <strong>{featuredRegions.join(" / ")}</strong>
-            </div>
-            <div>
-              <span class="filter-label">Popular searches</span>
-              <strong>{eventCategories.slice(0, 4).join(" / ")}</strong>
-            </div>
-            <div>
-              <span class="filter-label">Results</span>
-              <strong data-venue-results-count>{venues.length} venues</strong>
-            </div>
-          </div>
-        </div>
-        <div class="venue-results-header">
-          <div>
-            <p class="eyebrow">Venue results</p>
-            <h3>Available stadium venues</h3>
-          </div>
-          <p class="lede" data-venue-results-summary>
-            Browse the current venue selection below, or use the area finder to narrow it down.
-          </p>
-        </div>
-
-        <div class="stack venue-results-list" data-venue-results>
-          {venueFinderData.map((venue) => (
-            <article class="card list-card list-card-rich venue-result-card" data-search-terms={venue.searchTerms}>
-              <div class="venue-result-media" style={`background-image:url('${venue.heroImage}')`}></div>
-              <div class="venue-result-copy">
-                <div class="venue-topline">
-                  <span>{venue.city}</span>
-                  <span>{venue.region}</span>
-                </div>
-                <h3>{venue.name}</h3>
-                <p>{venue.summary}</p>
-                <div class="venue-result-meta">
-                  <span class="capacity">{venue.guestCapacityLabel}</span>
-                  <ul class="tag-list">
-                    {venue.eventTypes.map((tag) => (
-                      <li>{tag}</li>
-                    ))}
-                  </ul>
-                </div>
-                <div class="venue-card-actions">
-                  <a class="text-link" href={`/venues/${venue.slug}/`}>View venue details</a>
-                  <a class="button button-secondary button-compact" href="/enquire/">Enquire</a>
-                </div>
+          <div class="venue-advanced-search">
+            <button
+              class="button button-secondary button-compact venue-advanced-toggle"
+              type="button"
+              aria-expanded="false"
+              data-venue-advanced-toggle
+            >
+              Advanced search
+            </button>
+            <div class="venue-advanced-panel" data-venue-advanced-panel hidden>
+              <div class="venue-advanced-grid">
+                <label class="venue-area-field">
+                  <span class="filter-label">Guest numbers</span>
+                  <select data-venue-filter-guest-numbers>
+                    <option value="">Any size</option>
+                    <option value="50">50+ guests</option>
+                    <option value="100">100+ guests</option>
+                    <option value="250">250+ guests</option>
+                    <option value="500">500+ guests</option>
+                    <option value="1000">1000+ guests</option>
+                  </select>
+                </label>
+                <label class="venue-area-field">
+                  <span class="filter-label">Exhibition space</span>
+                  <select data-venue-filter-exhibition-space>
+                    <option value="">Any space</option>
+                    <option value="100">100+ sqm</option>
+                    <option value="250">250+ sqm</option>
+                    <option value="500">500+ sqm</option>
+                    <option value="1000">1000+ sqm</option>
+                  </select>
+                </label>
+                <label class="venue-area-field">
+                  <span class="filter-label">Event spaces</span>
+                  <select data-venue-filter-event-spaces>
+                    <option value="">Any amount</option>
+                    <option value="5">5+ spaces</option>
+                    <option value="10">10+ spaces</option>
+                    <option value="20">20+ spaces</option>
+                    <option value="30">30+ spaces</option>
+                  </select>
+                </label>
+                <label class="venue-area-field">
+                  <span class="filter-label">Smaller meeting rooms/boxes</span>
+                  <select data-venue-filter-boxes>
+                    <option value="">Any amount</option>
+                    <option value="1">1+ boxes</option>
+                    <option value="5">5+ boxes</option>
+                    <option value="10">10+ boxes</option>
+                    <option value="20">20+ boxes</option>
+                  </select>
+                </label>
+                <label class="venue-area-field">
+                  <span class="filter-label">Distance to nearest hotel</span>
+                  <select data-venue-filter-hotel-distance>
+                    <option value="">Any distance</option>
+                    <option value="0.5">Up to 0.5 miles</option>
+                    <option value="1">Up to 1 mile</option>
+                    <option value="3">Up to 3 miles</option>
+                    <option value="5">Up to 5 miles</option>
+                  </select>
+                </label>
+                <label class="venue-area-field">
+                  <span class="filter-label">Events on pitch</span>
+                  <select data-venue-filter-on-pitch>
+                    <option value="">Any</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                  </select>
+                </label>
               </div>
-            </article>
-          ))}
+            </div>
+          </div>
+
         </div>
 
-        <div class="directory-message-card" data-venue-empty hidden>
-          <p class="eyebrow">No matching venues</p>
-          <h3>We could not find a venue matching that search.</h3>
-          <p>Try a nearby city, a different postcode area or browse the club directory below.</p>
+        <div class="directory-message-card venue-search-prompt" data-venue-prompt>
+          <p class="eyebrow">Start with a location</p>
+          <h3>Search to see venues on the map and in the shortlist below.</h3>
+          <p>We will only show venues that fall within 100 miles of your chosen location.</p>
         </div>
-      </div>
-      <aside class="listing-sidebar">
-        <article class="card sidebar-card">
-          <p class="eyebrow">Why use Stadium Experience</p>
-          <h3>Professional venue search with direct venue access.</h3>
-          <ul class="feature-list">
-            {venueSearchBenefits.map((benefit) => (
-              <li>{benefit}</li>
+
+        <div class="directory-message-card" data-venue-loading hidden>
+          <p class="eyebrow">Searching venues</p>
+          <h3>Finding nearby stadium venues.</h3>
+          <p>Please wait while we locate your search and order venues by distance.</p>
+        </div>
+
+        <div class="directory-message-card" data-venue-search-error hidden>
+          <p class="eyebrow">Search unavailable</p>
+          <h3>We could not map that location right now.</h3>
+          <p>Please try a nearby city or postcode.</p>
+        </div>
+
+        <section class="venue-results-shell" data-venue-results-shell hidden>
+          <div class="venue-results-header">
+            <div>
+              <p class="eyebrow">Venue results</p>
+              <h3>Nearby stadium venues</h3>
+            </div>
+            <p class="lede" data-venue-results-summary>
+              Showing venues within 100 miles, ordered from nearest to furthest.
+            </p>
+          </div>
+
+          <div class="venue-map-shell">
+            <div class="venue-map-canvas" data-venue-map></div>
+          </div>
+
+          <div class="venue-results-controls">
+            <label class="venue-area-field venue-area-field-compact">
+              <span class="filter-label">Sort results</span>
+              <select data-venue-sort>
+                <option value="distance" data-venue-distance-sort>Nearest first</option>
+                <option value="guestNumbers">Guest numbers</option>
+                <option value="exhibitionSpace">Exhibition space</option>
+                <option value="eventSpaces">Event spaces</option>
+                <option value="boxes">Meeting rooms / boxes</option>
+                <option value="hotelDistance">Nearest hotel</option>
+                <option value="onPitch">Events on pitch</option>
+              </select>
+            </label>
+            <div class="venue-results-actions">
+              <div class="venue-view-toggle" role="group" aria-label="Result view">
+              <button class="button button-secondary button-compact is-active" type="button" data-venue-view="cards">Card view</button>
+              <button class="button button-secondary button-compact" type="button" data-venue-view="table">Table view</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="stack venue-results-list" data-venue-results>
+            {venueFinderData.map((venue) => (
+              <article
+                class="card list-card list-card-rich venue-result-card"
+                data-venue-card
+                data-venue-slug={venue.slug}
+                hidden
+              >
+                <div class="venue-result-media">
+                  {venue.crestImage ? (
+                    <div class="venue-result-crest">
+                      <img src={venue.crestImage} alt="" loading="lazy" />
+                    </div>
+                  ) : (
+                    <div class="venue-result-crest venue-result-crest-fallback" aria-hidden="true">
+                      <span>{venue.name.split(/[\s&(]+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase() ?? "").join("")}</span>
+                    </div>
+                  )}
+                </div>
+                <div class="venue-result-copy">
+                  <div class="venue-topline">
+                    <span>{venue.city}</span>
+                    <span>{venue.region}</span>
+                  </div>
+                  <h3>{venue.name}</h3>
+                  <p>{venue.summary}</p>
+                  {venue.planningFacts.length ? (
+                    <dl class="venue-planning-facts" aria-label="Planning facts">
+                      {venue.planningFacts.map((fact) => (
+                        <div class="venue-planning-fact">
+                          <dt>{fact.label}</dt>
+                          <dd>{fact.value}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  ) : null}
+                  <div class="venue-result-meta">
+                    <span class="capacity">{venue.guestCapacityLabel}</span>
+                    <p class="venue-distance" data-venue-distance>Distance shown after search</p>
+                  </div>
+                  <div class="venue-card-actions">
+                    <a class="text-link" href={`/venues/${venue.slug}/`}>View venue details</a>
+                    <a class="button button-secondary button-compact" href={`/enquire/?venue=${encodeURIComponent(venue.slug)}`}>Enquire</a>
+                  </div>
+                </div>
+              </article>
             ))}
-          </ul>
-        </article>
-        <article class="card sidebar-card">
-          <p class="eyebrow">Planner confidence</p>
-          <h3>What event buyers value most</h3>
-          <ul class="tag-list tag-list-plain">
-            {plannerTrustPoints.map((point) => (
-              <li>{point}</li>
-            ))}
-          </ul>
-        </article>
-        <article class="card sidebar-card testimonial-card">
-          <p class="eyebrow">From the industry</p>
-          <blockquote>{testimonials[0].quote}</blockquote>
-          <p class="testimonial-meta">{testimonials[0].name}, {testimonials[0].role}</p>
-        </article>
-      </aside>
+          </div>
+
+          <div class="venue-results-table-shell" data-venue-results-table-shell hidden>
+            <div class="venue-results-table-scroll">
+              <table class="venue-results-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Venue</th>
+                    <th scope="col" data-venue-distance-column>Distance</th>
+                    <th scope="col">Theatre Capacity</th>
+                    <th scope="col">Banquet Capacity</th>
+                    <th scope="col">Total SQM Exhibition Space</th>
+                    <th scope="col">Event Spaces</th>
+                    <th scope="col">Boxes</th>
+                    <th scope="col">Distance To Nearest Hotel</th>
+                    <th scope="col">Events On Pitch</th>
+                  </tr>
+                </thead>
+                <tbody data-venue-results-table-body></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="directory-message-card" data-venue-empty hidden>
+            <p class="eyebrow">No nearby venues</p>
+            <h3>We could not find any stadium venues within 100 miles.</h3>
+            <p>Try a larger nearby city or another postcode area.</p>
+          </div>
+        </section>
     </div>
   </section>
 
   <ClubDirectory />
-
-  <script>
+  <script define:vars={{ venues: venueFinderData }}>
     const searchInput = document.querySelector("[data-venue-search-input]");
     const searchForm = document.querySelector("[data-venue-area-form]");
-    const resultCards = Array.from(document.querySelectorAll("[data-search-terms]"));
-    const resultCount = document.querySelector("[data-venue-results-count]");
-    const resultSummary = document.querySelector("[data-venue-results-summary]");
+    const promptState = document.querySelector("[data-venue-prompt]");
+    const loadingState = document.querySelector("[data-venue-loading]");
+    const errorState = document.querySelector("[data-venue-search-error]");
     const emptyState = document.querySelector("[data-venue-empty]");
+    const distanceFilter = document.querySelector("[data-venue-distance-filter]");
+    const advancedToggle = document.querySelector("[data-venue-advanced-toggle]");
+    const advancedPanel = document.querySelector("[data-venue-advanced-panel]");
+    const guestNumbersFilter = document.querySelector("[data-venue-filter-guest-numbers]");
+    const exhibitionSpaceFilter = document.querySelector("[data-venue-filter-exhibition-space]");
+    const eventSpacesFilter = document.querySelector("[data-venue-filter-event-spaces]");
+    const boxesFilter = document.querySelector("[data-venue-filter-boxes]");
+    const hotelDistanceFilter = document.querySelector("[data-venue-filter-hotel-distance]");
+    const onPitchFilter = document.querySelector("[data-venue-filter-on-pitch]");
+    const resultsShell = document.querySelector("[data-venue-results-shell]");
+    const resultsList = document.querySelector("[data-venue-results]");
+    const resultsTableShell = document.querySelector("[data-venue-results-table-shell]");
+    const resultsTableBody = document.querySelector("[data-venue-results-table-body]");
+    const resultSummary = document.querySelector("[data-venue-results-summary]");
+    const sortControl = document.querySelector("[data-venue-sort]");
+    const distanceSortOption = document.querySelector("[data-venue-distance-sort]");
+    const showAllButton = document.querySelector("[data-venue-show-all]");
+    const clearResultsButton = document.querySelector("[data-venue-clear-results]");
+    const viewButtons = Array.from(document.querySelectorAll("[data-venue-view]"));
+    const distanceColumns = Array.from(document.querySelectorAll("[data-venue-distance-column]"));
+    const mapElement = document.querySelector("[data-venue-map]");
+    const mapShell = document.querySelector(".venue-map-shell");
+    const venueCards = Array.from(document.querySelectorAll("[data-venue-card]"));
+    const geocodeCache = new Map();
+    const geocodeStorageKey = "stadium-experience-geocode-cache";
+    const venueSearchStateKey = "stadium-experience-venue-search-state";
+    let venuePointsPromise = null;
+    let venueMap = null;
+    let venueMarkers = [];
+    let currentResults = [];
+    let currentOrigin = null;
+    let currentFilters = null;
+    let currentView = "cards";
+    let currentSearchMode = "location";
 
-    const updateVenueResults = (query) => {
-      const normalized = query.trim().toLowerCase();
-      let matches = 0;
+    try {
+      const storedCache = window.localStorage.getItem(geocodeStorageKey);
+      const parsedCache = storedCache ? JSON.parse(storedCache) : {};
 
-      resultCards.forEach((card) => {
-        const haystack = card.getAttribute("data-search-terms") ?? "";
-        const isVisible = !normalized || haystack.includes(normalized);
-        card.hidden = !isVisible;
-
-        if (isVisible) {
-          matches += 1;
+      Object.entries(parsedCache).forEach(([key, value]) => {
+        if (
+          value &&
+          typeof value === "object" &&
+          typeof value.lat === "number" &&
+          typeof value.lng === "number" &&
+          typeof value.label === "string"
+        ) {
+          geocodeCache.set(key, value);
         }
       });
+    } catch (error) {
+      console.warn("Unable to read saved geocode cache", error);
+    }
 
-      if (resultCount) {
-        resultCount.textContent = `${matches} venue${matches === 1 ? "" : "s"}`;
-      }
-
-      if (resultSummary) {
-        resultSummary.textContent = normalized
-          ? `Showing venues matching "${query.trim()}".`
-          : "Browse the current venue selection below, or use the area finder to narrow it down.";
-      }
-
-      if (emptyState) {
-        emptyState.hidden = matches !== 0;
+    const persistGeocodeCache = () => {
+      try {
+        const entries = Object.fromEntries(geocodeCache.entries());
+        window.localStorage.setItem(geocodeStorageKey, JSON.stringify(entries));
+      } catch (error) {
+        console.warn("Unable to save geocode cache", error);
       }
     };
 
-    searchForm?.addEventListener("submit", (event) => {
-      event.preventDefault();
-      updateVenueResults(searchInput?.value ?? "");
+    const milesBetween = (from, to) => {
+      const toRadians = (value) => (value * Math.PI) / 180;
+      const earthRadiusMiles = 3958.8;
+      const latDiff = toRadians(to.lat - from.lat);
+      const lonDiff = toRadians(to.lng - from.lng);
+      const a =
+        Math.sin(latDiff / 2) ** 2 +
+        Math.cos(toRadians(from.lat)) * Math.cos(toRadians(to.lat)) * Math.sin(lonDiff / 2) ** 2;
+
+      return earthRadiusMiles * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    };
+
+    const getNumericFactValue = (venue, label) => {
+      const fact = venue.planningFacts?.find(
+        (item) => typeof item?.label === "string" && item.label.trim().toLowerCase() === label.toLowerCase()
+      );
+
+      if (!fact || typeof fact.value !== "string") {
+        return null;
+      }
+
+      if (
+        label.toLowerCase() === "distance to nearest hotel" &&
+        fact.value.trim().toLowerCase().includes("onsite")
+      ) {
+        return 0;
+      }
+
+      const match = fact.value.replace(/,/g, "").match(/-?\d+(\.\d+)?/);
+      return match ? Number(match[0]) : null;
+    };
+
+    const getBooleanFactValue = (venue, label) => {
+      const fact = venue.planningFacts?.find(
+        (item) => typeof item?.label === "string" && item.label.trim().toLowerCase() === label.toLowerCase()
+      );
+
+      if (!fact || typeof fact.value !== "string") {
+        return null;
+      }
+
+      const normalized = fact.value.trim().toLowerCase();
+
+      if (["yes", "available", "allowed", "included", "true"].some((value) => normalized.includes(value))) {
+        return true;
+      }
+
+      if (["no", "not available", "not allowed", "false"].some((value) => normalized.includes(value))) {
+        return false;
+      }
+
+      return null;
+    };
+
+    const getFactDisplayValue = (venue, label) => {
+      const fact = venue.planningFacts?.find(
+        (item) => typeof item?.label === "string" && item.label.trim().toLowerCase() === label.toLowerCase()
+      );
+
+      return fact?.value ?? "—";
+    };
+
+    const getAdvancedFilters = () => ({
+      guestNumbers: Number(guestNumbersFilter?.value || 0),
+      exhibitionSpace: Number(exhibitionSpaceFilter?.value || 0),
+      eventSpaces: Number(eventSpacesFilter?.value || 0),
+      boxes: Number(boxesFilter?.value || 0),
+      hotelDistance: Number(hotelDistanceFilter?.value || 0),
+      onPitch: onPitchFilter?.value || ""
     });
 
-    searchInput?.addEventListener("input", () => {
-      updateVenueResults(searchInput.value);
+    const setAdvancedPanelState = (isExpanded) => {
+      if (advancedToggle) {
+        advancedToggle.setAttribute("aria-expanded", String(isExpanded));
+        advancedToggle.textContent = isExpanded ? "Hide advanced search" : "Advanced search";
+      }
+
+      if (advancedPanel) {
+        advancedPanel.hidden = !isExpanded;
+      }
+    };
+
+    const hasActiveAdvancedFilters = (filters) =>
+      Boolean(
+        filters.guestNumbers ||
+        filters.exhibitionSpace ||
+        filters.eventSpaces ||
+        filters.boxes ||
+        filters.hotelDistance ||
+        filters.onPitch
+      );
+
+    const persistSearchState = () => {
+      try {
+        const query = searchInput?.value?.trim() ?? "";
+
+        if (!query && currentSearchMode !== "all") {
+          window.sessionStorage.removeItem(venueSearchStateKey);
+          return;
+        }
+
+        const filters = getAdvancedFilters();
+        const isAdvancedExpanded = advancedToggle?.getAttribute("aria-expanded") === "true";
+        const searchState = {
+          query,
+          distance: distanceFilter?.value ?? "50",
+          sort: sortControl?.value ?? "distance",
+          view: currentView,
+          mode: currentSearchMode,
+          advancedOpen: isAdvancedExpanded || hasActiveAdvancedFilters(filters),
+          filters: {
+            guestNumbers: guestNumbersFilter?.value ?? "",
+            exhibitionSpace: exhibitionSpaceFilter?.value ?? "",
+            eventSpaces: eventSpacesFilter?.value ?? "",
+            boxes: boxesFilter?.value ?? "",
+            hotelDistance: hotelDistanceFilter?.value ?? "",
+            onPitch: onPitchFilter?.value ?? ""
+          }
+        };
+
+        window.sessionStorage.setItem(venueSearchStateKey, JSON.stringify(searchState));
+      } catch (error) {
+        console.warn("Unable to save venue search state", error);
+      }
+    };
+
+    const restoreSearchState = () => {
+      try {
+        const rawState = window.sessionStorage.getItem(venueSearchStateKey);
+
+        if (!rawState) {
+          setAdvancedPanelState(false);
+          return null;
+        }
+
+        const state = JSON.parse(rawState);
+
+        if (
+          !state ||
+          typeof state !== "object" ||
+          typeof state.mode !== "string" ||
+          (state.mode !== "all" && (typeof state.query !== "string" || !state.query.trim()))
+        ) {
+          setAdvancedPanelState(false);
+          return null;
+        }
+
+        if (searchInput) searchInput.value = typeof state.query === "string" ? state.query : "";
+        if (distanceFilter && typeof state.distance === "string") distanceFilter.value = state.distance;
+        if (sortControl && typeof state.sort === "string") sortControl.value = state.sort;
+
+        if (guestNumbersFilter && typeof state.filters?.guestNumbers === "string") guestNumbersFilter.value = state.filters.guestNumbers;
+        if (exhibitionSpaceFilter && typeof state.filters?.exhibitionSpace === "string") exhibitionSpaceFilter.value = state.filters.exhibitionSpace;
+        if (eventSpacesFilter && typeof state.filters?.eventSpaces === "string") eventSpacesFilter.value = state.filters.eventSpaces;
+        if (boxesFilter && typeof state.filters?.boxes === "string") boxesFilter.value = state.filters.boxes;
+        if (hotelDistanceFilter && typeof state.filters?.hotelDistance === "string") hotelDistanceFilter.value = state.filters.hotelDistance;
+        if (onPitchFilter && typeof state.filters?.onPitch === "string") onPitchFilter.value = state.filters.onPitch;
+
+        currentView = state.view === "table" ? "table" : "cards";
+        currentSearchMode = state.mode === "all" ? "all" : "location";
+        updateView();
+        updateSearchModeUi();
+        setAdvancedPanelState(Boolean(state.advancedOpen));
+
+        return typeof state.query === "string" ? state.query : "";
+      } catch (error) {
+        console.warn("Unable to restore venue search state", error);
+        setAdvancedPanelState(false);
+        return null;
+      }
+    };
+
+    const getGuestCapacityForFilter = (venue) => {
+      const theatreCapacity = getNumericFactValue(venue, "Theatre Capacity");
+      const banquetCapacity = getNumericFactValue(venue, "Banquet Capacity");
+      return Math.max(theatreCapacity ?? 0, banquetCapacity ?? 0) || null;
+    };
+
+    const matchesAdvancedFilters = (venue, filters) => {
+      if (filters.guestNumbers) {
+        const guestCapacity = getGuestCapacityForFilter(venue);
+        if (guestCapacity === null || guestCapacity < filters.guestNumbers) {
+          return false;
+        }
+      }
+
+      if (filters.exhibitionSpace) {
+        const exhibitionSpace = getNumericFactValue(venue, "Total SQM Exhibition Space");
+        if (exhibitionSpace === null || exhibitionSpace < filters.exhibitionSpace) {
+          return false;
+        }
+      }
+
+      if (filters.eventSpaces) {
+        const eventSpaces = getNumericFactValue(venue, "Event Spaces");
+        if (eventSpaces === null || eventSpaces < filters.eventSpaces) {
+          return false;
+        }
+      }
+
+      if (filters.boxes) {
+        const boxes = getNumericFactValue(venue, "Boxes");
+        if (boxes === null || boxes < filters.boxes) {
+          return false;
+        }
+      }
+
+      if (filters.hotelDistance) {
+        const hotelDistance = getNumericFactValue(venue, "Distance To Nearest Hotel");
+        if (hotelDistance === null || hotelDistance > filters.hotelDistance) {
+          return false;
+        }
+      }
+
+      if (filters.onPitch) {
+        const onPitch = getBooleanFactValue(venue, "Events On Pitch");
+        if (onPitch === null) {
+          return false;
+        }
+
+        if (filters.onPitch === "yes" && !onPitch) {
+          return false;
+        }
+
+        if (filters.onPitch === "no" && onPitch) {
+          return false;
+        }
+      }
+
+      return true;
+    };
+
+    const describeAdvancedFilters = (filters) => {
+      const descriptions = [];
+
+      if (filters.guestNumbers) descriptions.push(`${filters.guestNumbers}+ guests`);
+      if (filters.exhibitionSpace) descriptions.push(`${filters.exhibitionSpace}+ sqm exhibition space`);
+      if (filters.eventSpaces) descriptions.push(`${filters.eventSpaces}+ event spaces`);
+      if (filters.boxes) descriptions.push(`${filters.boxes}+ boxes`);
+      if (filters.hotelDistance) descriptions.push(`hotel within ${filters.hotelDistance} mile${filters.hotelDistance === 1 ? "" : "s"}`);
+      if (filters.onPitch === "yes") descriptions.push("events on pitch available");
+      if (filters.onPitch === "no") descriptions.push("no events on pitch");
+
+      return descriptions;
+    };
+
+    const sortResults = (matches, sortKey) => {
+      const direction = sortKey === "hotelDistance" || sortKey === "distance" ? "asc" : "desc";
+
+      const getSortValue = (match) => {
+        switch (sortKey) {
+          case "guestNumbers":
+            return getGuestCapacityForFilter(match);
+          case "exhibitionSpace":
+            return getNumericFactValue(match, "Total SQM Exhibition Space");
+          case "eventSpaces":
+            return getNumericFactValue(match, "Event Spaces");
+          case "boxes":
+            return getNumericFactValue(match, "Boxes");
+          case "hotelDistance":
+            return getNumericFactValue(match, "Distance To Nearest Hotel");
+          case "onPitch": {
+            const onPitch = getBooleanFactValue(match, "Events On Pitch");
+            return onPitch === null ? null : Number(onPitch);
+          }
+          case "distance":
+          default:
+            return match.distance;
+        }
+      };
+
+      return [...matches].sort((left, right) => {
+        const leftValue = getSortValue(left);
+        const rightValue = getSortValue(right);
+
+        if (leftValue === null && rightValue === null) {
+          return left.distance - right.distance;
+        }
+
+        if (leftValue === null) {
+          return 1;
+        }
+
+        if (rightValue === null) {
+          return -1;
+        }
+
+        if (leftValue === rightValue) {
+          return left.distance - right.distance;
+        }
+
+        return direction === "asc" ? leftValue - rightValue : rightValue - leftValue;
+      });
+    };
+
+    const updateSearchModeUi = () => {
+      const isAllMode = currentSearchMode === "all";
+
+      if (distanceFilter) {
+        distanceFilter.disabled = isAllMode;
+      }
+
+      if (searchInput) {
+        searchInput.disabled = false;
+      }
+
+      if (distanceSortOption) {
+        distanceSortOption.hidden = isAllMode;
+      }
+
+      if (isAllMode && sortControl?.value === "distance") {
+        sortControl.value = "guestNumbers";
+      }
+
+      distanceColumns.forEach((column) => {
+        column.hidden = isAllMode;
+      });
+
+      venueCards.forEach((card) => {
+        const distance = card.querySelector("[data-venue-distance]");
+        if (distance instanceof HTMLElement) {
+          distance.hidden = isAllMode;
+        }
+      });
+    };
+
+    const setState = (state) => {
+      if (promptState) promptState.hidden = state !== "prompt";
+      if (loadingState) loadingState.hidden = state !== "loading";
+      if (errorState) errorState.hidden = state !== "error";
+      if (resultsShell) resultsShell.hidden = state !== "results";
+      if (emptyState) emptyState.hidden = true;
+    };
+
+    const clearVenueResults = () => {
+      currentResults = [];
+      currentOrigin = null;
+      currentFilters = null;
+      currentSearchMode = "location";
+      currentView = "cards";
+
+      if (searchInput) searchInput.value = "";
+      if (distanceFilter) distanceFilter.value = "50";
+      if (guestNumbersFilter) guestNumbersFilter.value = "";
+      if (exhibitionSpaceFilter) exhibitionSpaceFilter.value = "";
+      if (eventSpacesFilter) eventSpacesFilter.value = "";
+      if (boxesFilter) boxesFilter.value = "";
+      if (hotelDistanceFilter) hotelDistanceFilter.value = "";
+      if (onPitchFilter) onPitchFilter.value = "";
+      if (sortControl) sortControl.value = "distance";
+
+      setAdvancedPanelState(false);
+      updateSearchModeUi();
+      updateView();
+      clearResultLabels();
+
+      if (resultsTableBody) {
+        resultsTableBody.innerHTML = "";
+      }
+
+      venueCards.forEach((card) => {
+        card.hidden = true;
+      });
+
+      venueMarkers.forEach((marker) => marker.remove());
+      venueMarkers = [];
+
+      window.sessionStorage.removeItem(venueSearchStateKey);
+      setState("prompt");
+    };
+
+    const loadLeaflet = async () => {
+      if (window.L) {
+        return window.L;
+      }
+
+      if (!document.querySelector("link[data-leaflet-css]")) {
+        const stylesheet = document.createElement("link");
+        stylesheet.rel = "stylesheet";
+        stylesheet.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+        stylesheet.setAttribute("data-leaflet-css", "true");
+        document.head.appendChild(stylesheet);
+      }
+
+      await new Promise((resolve, reject) => {
+        const existingScript = document.querySelector("script[data-leaflet-script]");
+
+        if (existingScript) {
+          existingScript.addEventListener("load", resolve, { once: true });
+          existingScript.addEventListener("error", reject, { once: true });
+          return;
+        }
+
+        const script = document.createElement("script");
+        script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+        script.async = true;
+        script.setAttribute("data-leaflet-script", "true");
+        script.addEventListener("load", resolve, { once: true });
+        script.addEventListener("error", reject, { once: true });
+        document.body.appendChild(script);
+      });
+
+      return window.L;
+    };
+
+    const geocode = async (query) => {
+      const normalized = query.trim().toLowerCase();
+
+      if (!normalized) {
+        return null;
+      }
+
+      if (geocodeCache.has(normalized)) {
+        return geocodeCache.get(normalized);
+      }
+
+      const response = await fetch(`/api/geocode?q=${encodeURIComponent(query)}`);
+
+      if (!response.ok) {
+        geocodeCache.set(normalized, null);
+        return null;
+      }
+
+      const data = await response.json();
+      const point =
+        data && typeof data === "object" && data.result
+          ? {
+              lat: Number(data.result.lat),
+              lng: Number(data.result.lng),
+              label: String(data.result.label)
+            }
+          : null;
+
+      geocodeCache.set(normalized, point);
+      persistGeocodeCache();
+      return point;
+    };
+
+    const ensureVenueCoordinates = async () => {
+      if (venuePointsPromise) {
+        return venuePointsPromise;
+      }
+
+      venuePointsPromise = Promise.all(
+        venues.map(async (venue) => {
+          if (venue.point && typeof venue.point.lat === "number" && typeof venue.point.lng === "number") {
+            return venue;
+          }
+
+          try {
+            const point = await geocode(venue.mapQuery);
+            return point ? { ...venue, point } : null;
+          } catch (error) {
+            console.warn("Unable to geocode venue", venue.name, error);
+            return null;
+          }
+        })
+      ).then((results) => results.filter(Boolean));
+
+      return venuePointsPromise;
+    };
+
+    const createVenueIcon = (L, index) =>
+      L.divIcon({
+        className: "venue-map-pin-shell",
+        html: `<span class="venue-map-pin venue-map-pin-result">${index + 1}</span>`,
+        iconSize: [32, 32],
+        iconAnchor: [16, 16]
+      });
+
+    const updateResultLabels = (matches) => {
+      matches.forEach((match, index) => {
+        const card = venueCards.find((item) => item.getAttribute("data-venue-slug") === match.slug);
+        if (!card) return;
+
+        card.setAttribute("data-result-number", String(index + 1));
+        card.querySelector(".venue-result-copy")?.setAttribute("data-result-number", String(index + 1));
+      });
+    };
+
+    const clearResultLabels = () => {
+      venueCards.forEach((card) => {
+        card.removeAttribute("data-result-number");
+        card.querySelector(".venue-result-copy")?.removeAttribute("data-result-number");
+        card.classList.remove("venue-result-card-active");
+      });
+    };
+
+    const focusVenueCard = (slug) => {
+      const card = venueCards.find((item) => item.getAttribute("data-venue-slug") === slug);
+
+      if (!card) {
+        return;
+      }
+
+      const header = document.querySelector(".site-header");
+      const headerHeight = header instanceof HTMLElement ? header.getBoundingClientRect().height : 0;
+      const topOffset = 16;
+      const cardTop = window.scrollY + card.getBoundingClientRect().top - headerHeight - topOffset;
+
+      venueCards.forEach((item) => item.classList.remove("venue-result-card-active"));
+      card.classList.add("venue-result-card-active");
+      window.scrollTo({
+        top: Math.max(cardTop, 0),
+        behavior: "smooth"
+      });
+    };
+
+    const renderTableResults = (matches) => {
+      if (!resultsTableBody) {
+        return;
+      }
+
+      resultsTableBody.innerHTML = "";
+
+      matches.forEach((match) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>
+            <div class="venue-results-table-venue">
+              <strong><a href="/venues/${match.slug}/">${match.name}</a></strong>
+              <span>${match.city}</span>
+            </div>
+          </td>
+          ${currentSearchMode === "location" ? `<td data-venue-distance-column>${match.distance.toFixed(1)} miles</td>` : ""}
+          <td>${getFactDisplayValue(match, "Theatre Capacity")}</td>
+          <td>${getFactDisplayValue(match, "Banquet Capacity")}</td>
+          <td>${getFactDisplayValue(match, "Total SQM Exhibition Space")}</td>
+          <td>${getFactDisplayValue(match, "Event Spaces")}</td>
+          <td>${getFactDisplayValue(match, "Boxes")}</td>
+          <td>${getFactDisplayValue(match, "Distance To Nearest Hotel")}</td>
+          <td>${getFactDisplayValue(match, "Events On Pitch")}</td>
+        `;
+        resultsTableBody.appendChild(row);
+      });
+    };
+
+    const updateView = () => {
+      if (resultsList) {
+        resultsList.hidden = currentView !== "cards";
+      }
+
+      if (resultsTableShell) {
+        resultsTableShell.hidden = currentView !== "table";
+      }
+
+      viewButtons.forEach((button) => {
+        const isActive = button.getAttribute("data-venue-view") === currentView;
+        button.classList.toggle("is-active", isActive);
+      });
+    };
+
+    const renderResults = async (origin, matches, filters) => {
+      const activeFilterSummary = describeAdvancedFilters(filters);
+      const isAllMode = currentSearchMode === "all";
+
+      if (resultSummary) {
+        resultSummary.textContent = isAllMode
+          ? `Showing all ${matches.length} venue${matches.length === 1 ? "" : "s"}${activeFilterSummary.length ? `, filtered by ${activeFilterSummary.join(", ")}` : ""}.`
+          : `Showing ${matches.length} venue${matches.length === 1 ? "" : "s"} within ${Number(distanceFilter?.value ?? "100")} miles of ${origin.label}${activeFilterSummary.length ? `, filtered by ${activeFilterSummary.join(", ")}` : ""}.`;
+      }
+
+      const cardMap = new Map(venueCards.map((card) => [card.getAttribute("data-venue-slug"), card]));
+
+      venueCards.forEach((card) => {
+        card.hidden = true;
+      });
+
+      clearResultLabels();
+      updateResultLabels(matches);
+
+      const fragment = document.createDocumentFragment();
+
+      matches.forEach((match) => {
+        const card = cardMap.get(match.slug);
+        if (!card) return;
+
+        const distance = card.querySelector("[data-venue-distance]");
+        if (distance) {
+          distance.textContent = `${match.distance.toFixed(1)} miles away`;
+        }
+
+        card.hidden = false;
+        fragment.appendChild(card);
+      });
+
+      if (resultsList) {
+        resultsList.appendChild(fragment);
+      }
+
+      renderTableResults(matches);
+      updateSearchModeUi();
+      updateView();
+
+      if (emptyState) {
+        emptyState.hidden = matches.length !== 0;
+      }
+
+      const mapMatches = matches.filter((match) => match.point);
+      const mapCenter =
+        isAllMode
+          ? { lat: 54.5, lng: -3.2, label: "all venues" }
+          : origin;
+      const L = await ensureMap(mapCenter);
+      const bounds = [];
+
+      mapMatches.forEach((match, index) => {
+        const marker = L.marker([match.point.lat, match.point.lng], { icon: createVenueIcon(L, index) })
+          .addTo(venueMap)
+          .bindPopup(`${index + 1}. ${match.name}<br/>${match.city}`);
+
+        marker.on("click", () => {
+          focusVenueCard(match.slug);
+        });
+
+        venueMarkers.push(marker);
+        bounds.push([match.point.lat, match.point.lng]);
+      });
+
+      if (bounds.length > 1) {
+        venueMap.fitBounds(bounds, { padding: [30, 30] });
+      } else if (bounds.length === 1) {
+        venueMap.setView(bounds[0], 9);
+      } else if (isAllMode) {
+        venueMap.setView([mapCenter.lat, mapCenter.lng], 5);
+      }
+    };
+
+    const rerenderCurrentResults = async () => {
+      if ((!currentOrigin && currentSearchMode !== "all") || !currentFilters) {
+        return;
+      }
+
+      const sortedResults = sortResults(currentResults, sortControl?.value ?? "distance");
+      await renderResults(currentOrigin ?? { label: "all venues" }, sortedResults, currentFilters);
+    };
+
+    const ensureMap = async (center) => {
+      const L = await loadLeaflet();
+
+      if (!venueMap) {
+        venueMap = L.map(mapElement, {
+          scrollWheelZoom: false
+        });
+
+        L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
+          maxZoom: 18,
+          subdomains: "abcd",
+          attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+        }).addTo(venueMap);
+      }
+
+      venueMap.setView([center.lat, center.lng], 8);
+      venueMarkers.forEach((marker) => marker.remove());
+      venueMarkers = [];
+
+      return L;
+    };
+
+    const runVenueSearch = async (query, mode = "location") => {
+      const trimmedQuery = query.trim();
+      const isAllMode = mode === "all";
+      const distanceLimit = Number(distanceFilter?.value ?? "100");
+      const advancedFilters = getAdvancedFilters();
+      currentSearchMode = isAllMode ? "all" : "location";
+      updateSearchModeUi();
+
+      if (!isAllMode && !trimmedQuery) {
+        setState("prompt");
+        venueCards.forEach((card) => {
+          card.hidden = true;
+        });
+        return;
+      }
+
+      setState("loading");
+
+      try {
+        if (isAllMode) {
+          const venuePoints = await ensureVenueCoordinates();
+          currentOrigin = null;
+          currentFilters = advancedFilters;
+          currentResults = venuePoints
+            .filter((venue) => matchesAdvancedFilters(venue, advancedFilters))
+            .map((venue) => ({
+              ...venue,
+              distance: 0
+            }));
+          setState("results");
+          await rerenderCurrentResults();
+          return;
+        }
+
+        const origin = await geocode(trimmedQuery);
+
+        if (!origin) {
+          setState("error");
+          return;
+        }
+
+        const venuePoints = await ensureVenueCoordinates();
+        const matches = venuePoints
+          .map((venue) => ({
+            ...venue,
+            distance: milesBetween(origin, venue.point)
+          }))
+          .filter((venue) => venue.distance <= distanceLimit)
+          .filter((venue) => matchesAdvancedFilters(venue, advancedFilters))
+          .sort((left, right) => left.distance - right.distance);
+
+        if (!matches.length) {
+          const fallbackMatches = venuePoints
+            .filter((venue) => {
+              const haystack = [venue.name, venue.city, venue.region].join(" ").toLowerCase();
+              return haystack.includes(trimmedQuery.toLowerCase());
+            })
+            .map((venue) => ({
+              ...venue,
+              distance: milesBetween(origin, venue.point)
+            }))
+            .filter((venue) => matchesAdvancedFilters(venue, advancedFilters))
+            .sort((left, right) => left.distance - right.distance);
+
+          currentOrigin = origin;
+          currentFilters = advancedFilters;
+          currentResults = fallbackMatches;
+          setState("results");
+          await rerenderCurrentResults();
+          return;
+        }
+
+        currentOrigin = origin;
+        currentFilters = advancedFilters;
+        currentResults = matches;
+        setState("results");
+        await rerenderCurrentResults();
+      } catch (error) {
+        console.error("Unable to run venue proximity search", error);
+        setState("error");
+      }
+    };
+
+    advancedToggle?.addEventListener("click", () => {
+      const isExpanded = advancedToggle.getAttribute("aria-expanded") === "true";
+      setAdvancedPanelState(!isExpanded);
+      persistSearchState();
     });
+
+    sortControl?.addEventListener("change", () => {
+      persistSearchState();
+      rerenderCurrentResults();
+    });
+
+    viewButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        currentView = button.getAttribute("data-venue-view") ?? "cards";
+        updateView();
+        persistSearchState();
+      });
+    });
+
+    [
+      distanceFilter,
+      guestNumbersFilter,
+      exhibitionSpaceFilter,
+      eventSpacesFilter,
+      boxesFilter,
+      hotelDistanceFilter,
+      onPitchFilter
+    ].forEach((control) => {
+      control?.addEventListener("change", () => {
+        persistSearchState();
+      });
+    });
+
+    searchForm?.addEventListener("submit", (event) => {
+      event.preventDefault();
+      currentSearchMode = "location";
+      persistSearchState();
+      runVenueSearch(searchInput?.value ?? "", "location");
+    });
+
+    showAllButton?.addEventListener("click", (event) => {
+      event.preventDefault();
+      currentSearchMode = "all";
+      persistSearchState();
+      runVenueSearch("", "all");
+    });
+
+    clearResultsButton?.addEventListener("click", () => {
+      clearVenueResults();
+    });
+
+    const restoredQuery = restoreSearchState();
+    if (restoredQuery || currentSearchMode === "all") {
+      runVenueSearch(restoredQuery ?? "", currentSearchMode);
+    } else {
+      updateSearchModeUi();
+    }
+
   </script>
 </BaseLayout>

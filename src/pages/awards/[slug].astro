@@ -1,0 +1,56 @@
+---
+import AwardsCategoryPage from "../../components/awards/AwardsCategoryPage.astro";
+import AwardsFaqPage from "../../components/awards/AwardsFaqPage.astro";
+import AwardsInfoPage from "../../components/awards/AwardsInfoPage.astro";
+import AwardsProgrammePage from "../../components/awards/AwardsProgrammePage.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import {
+  getAwardsCategories,
+  getAwardsRouteData
+} from "../../lib/awards-content";
+
+const { slug } = Astro.params;
+
+if (!slug) {
+  return Astro.redirect("/awards/");
+}
+
+const routeData = await getAwardsRouteData(slug);
+
+if (!routeData) {
+  return Astro.redirect("/awards/");
+}
+
+const pageTitle =
+  routeData.kind === "page"
+    ? routeData.page.title
+    : routeData.kind === "programme"
+      ? routeData.programme.title
+      : routeData.category.title;
+const description =
+  routeData.kind === "page"
+    ? routeData.page.summary
+    : routeData.kind === "programme"
+      ? routeData.programme.summary
+      : routeData.category.summary;
+const relatedCategories =
+  routeData.kind === "page" && routeData.page.programmeSlug
+    ? await getAwardsCategories(routeData.page.programmeSlug)
+    : routeData.kind === "programme"
+      ? await getAwardsCategories(routeData.programme.slug)
+      : [];
+---
+
+<BaseLayout title={pageTitle} description={description}>
+  {routeData.kind === "page" ? (
+    routeData.page.pageType === "faq" ? (
+      <AwardsFaqPage page={routeData.page} />
+    ) : (
+      <AwardsInfoPage page={routeData.page} categories={relatedCategories} />
+    )
+  ) : routeData.kind === "programme" ? (
+    <AwardsProgrammePage programme={routeData.programme} categories={relatedCategories} />
+  ) : (
+    <AwardsCategoryPage category={routeData.category} />
+  )}
+</BaseLayout>

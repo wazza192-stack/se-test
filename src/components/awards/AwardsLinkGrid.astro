@@ -1,0 +1,33 @@
+---
+import type { AwardsLink } from "../../data/awards";
+
+type Props = {
+  eyebrow?: string;
+  title: string;
+  summary?: string | null;
+  links: AwardsLink[];
+};
+
+const { eyebrow = "Quick links", title, summary, links } = Astro.props;
+---
+
+{links.length > 0 && (
+  <section class="card info-card awards-link-card">
+    <p class="eyebrow">{eyebrow}</p>
+    <h2>{title}</h2>
+    {summary && <p>{summary}</p>}
+    <div class="awards-link-grid">
+      {links.map((link) => (
+        <a
+          class="awards-link-tile"
+          href={link.href}
+          target={link.external ? "_blank" : undefined}
+          rel={link.external ? "noreferrer" : undefined}
+        >
+          <strong>{link.label}</strong>
+          {link.description && <span>{link.description}</span>}
+        </a>
+      ))}
+    </div>
+  </section>
+)}

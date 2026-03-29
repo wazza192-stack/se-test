@@ -35,6 +35,34 @@ const heroSlides = [
     className: "hero-slide-accent"
   }
 ];
+const spacesGallerySlides = homepageSections.map((section, index) => ({
+  ...section,
+  className: `spaces-gallery-slide-${index + 1}`,
+  href:
+    index === 1
+      ? "/venues/"
+      : index === 2
+        ? "/enquire/"
+        : "/venues/",
+  cta:
+    index === 1
+      ? "Explore spaces"
+      : index === 2
+        ? "Start an enquiry"
+        : "Browse venues",
+  note:
+    index === 1
+      ? "Hospitality suites, boxes and large event rooms across the network."
+      : index === 2
+        ? "Move from shortlist to direct venue contact without commission."
+        : "Search by region, city and event type to find the right fit faster.",
+  facts:
+    index === 1
+      ? ["Boxes and lounges", "Flexible capacities", "Direct venue teams"]
+      : index === 2
+        ? ["Commission free", "UK-wide network", "Straight to venue teams"]
+        : ["Football, rugby and cricket", "UK-wide coverage", "Memorable settings"]
+}));
 ---
 
 <BaseLayout
@@ -184,15 +212,63 @@ const heroSlides = [
     </div>
   </section>
 
-  <section class="section section-tight">
-    <div class="proof-grid">
-      {homepageSections.map((section) => (
-        <article class="proof-card">
-          <p class="eyebrow">{section.eyebrow}</p>
-          <h3>{section.title}</h3>
-          <p>{section.body}</p>
-        </article>
-      ))}
+  <section class="section section-tight spaces-showcase">
+    <div class="section-heading section-heading-with-action">
+      <div>
+        <p class="eyebrow">Venue highlights</p>
+        <h2>Browse spaces and enquiry routes in a more visual way.</h2>
+      </div>
+      <div class="spaces-gallery-controls">
+        <button class="spaces-gallery-arrow" type="button" aria-label="Previous spaces slide" data-space-prev>
+          &lsaquo;
+        </button>
+        <button class="spaces-gallery-arrow" type="button" aria-label="Next spaces slide" data-space-next>
+          &rsaquo;
+        </button>
+      </div>
+    </div>
+    <div class="spaces-gallery" data-spaces-gallery>
+      <div class="spaces-gallery-stage">
+        {spacesGallerySlides.map((slide, index) => (
+          <article
+            class:list={["spaces-gallery-slide", slide.className, index === 0 && "is-active"]}
+            data-space-slide
+            aria-hidden={index === 0 ? "false" : "true"}
+          >
+            <div class="spaces-gallery-slide-panel">
+              <p class="eyebrow">{slide.eyebrow}</p>
+              <h3>{slide.title}</h3>
+              <p>{slide.body}</p>
+              <ul class="spaces-gallery-facts" aria-label={`${slide.title} highlights`}>
+                {slide.facts.map((fact) => (
+                  <li>{fact}</li>
+                ))}
+              </ul>
+              <div class="spaces-gallery-slide-actions">
+                <a class="button button-primary" href={slide.href}>{slide.cta}</a>
+                <span class="spaces-gallery-slide-note">{slide.note}</span>
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
+      <div class="spaces-gallery-rail" aria-label="Homepage spaces gallery navigation">
+        {spacesGallerySlides.map((slide, index) => (
+          <button
+            class:list={["spaces-gallery-trigger", index === 0 && "is-active"]}
+            type="button"
+            data-space-trigger
+            aria-label={`Show slide ${index + 1}: ${slide.title}`}
+            aria-pressed={index === 0 ? "true" : "false"}
+          >
+            <span class="spaces-gallery-trigger-index">0{index + 1}</span>
+            <span class="spaces-gallery-trigger-copy">
+              <strong>{slide.title}</strong>
+              <span>{slide.note}</span>
+            </span>
+          </button>
+        ))}
+      </div>
     </div>
   </section>
 
@@ -279,8 +355,15 @@ const heroSlides = [
     const heroDots = Array.from(document.querySelectorAll("[data-hero-dot]"));
     const prevButton = document.querySelector("[data-hero-prev]");
     const nextButton = document.querySelector("[data-hero-next]");
+    const spacesGallery = document.querySelector("[data-spaces-gallery]");
+    const spaceSlides = Array.from(document.querySelectorAll("[data-space-slide]"));
+    const spaceTriggers = Array.from(document.querySelectorAll("[data-space-trigger]"));
+    const spacePrevButton = document.querySelector("[data-space-prev]");
+    const spaceNextButton = document.querySelector("[data-space-next]");
     let activeSlide = 0;
     let heroTimer;
+    let activeSpaceSlide = 0;
+    let spaceTimer;
 
     const setSlide = (index) => {
       activeSlide = (index + heroSlides.length) % heroSlides.length;
@@ -297,6 +380,27 @@ const heroSlides = [
     const restartTimer = () => {
       window.clearInterval(heroTimer);
       heroTimer = window.setInterval(() => setSlide(activeSlide + 1), 5000);
+    };
+
+    const setSpaceSlide = (index) => {
+      if (!spaceSlides.length) return;
+      activeSpaceSlide = (index + spaceSlides.length) % spaceSlides.length;
+      spaceSlides.forEach((slide, slideIndex) => {
+        const isActive = slideIndex === activeSpaceSlide;
+        slide.classList.toggle("is-active", isActive);
+        slide.setAttribute("aria-hidden", isActive ? "false" : "true");
+      });
+      spaceTriggers.forEach((trigger, triggerIndex) => {
+        const isActive = triggerIndex === activeSpaceSlide;
+        trigger.classList.toggle("is-active", isActive);
+        trigger.setAttribute("aria-pressed", isActive ? "true" : "false");
+      });
+    };
+
+    const restartSpaceTimer = () => {
+      window.clearInterval(spaceTimer);
+      if (!spaceSlides.length) return;
+      spaceTimer = window.setInterval(() => setSpaceSlide(activeSpaceSlide + 1), 6000);
     };
 
     prevButton?.addEventListener("click", () => {
@@ -316,8 +420,28 @@ const heroSlides = [
       });
     });
 
+    spacePrevButton?.addEventListener("click", () => {
+      setSpaceSlide(activeSpaceSlide - 1);
+      restartSpaceTimer();
+    });
+
+    spaceNextButton?.addEventListener("click", () => {
+      setSpaceSlide(activeSpaceSlide + 1);
+      restartSpaceTimer();
+    });
+
+    spaceTriggers.forEach((trigger, index) => {
+      trigger.addEventListener("click", () => {
+        setSpaceSlide(index);
+        restartSpaceTimer();
+      });
+    });
+
     heroSlider?.addEventListener("mouseenter", () => window.clearInterval(heroTimer));
     heroSlider?.addEventListener("mouseleave", restartTimer);
+    spacesGallery?.addEventListener("mouseenter", () => window.clearInterval(spaceTimer));
+    spacesGallery?.addEventListener("mouseleave", restartSpaceTimer);
     restartTimer();
+    restartSpaceTimer();
   </script>
 </BaseLayout>

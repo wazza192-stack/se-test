@@ -38,8 +38,19 @@ That means:
 - do not change shared tables casually
 - prefer additive changes
 - check `SUPABASE-CONTRACT.md` before proposing or making schema changes
+- add new schema changes in `supabase/migrations/` instead of only editing `supabase/schema.sql`
 
 If ownership of a table is unclear, treat it as shared until clarified.
+
+### 0.1 Supabase migration workflow
+
+This repo now uses a simple migration-first workflow:
+
+- create a new SQL file in `supabase/migrations/` for each schema change
+- apply that migration to Supabase separately
+- then keep `supabase/schema.sql` aligned as the current snapshot
+
+Do not leave a schema change only in `schema.sql`.
 
 ### 1. Public club directory
 
@@ -162,6 +173,8 @@ Keep design changes consistent with the existing Stadium Experience visual langu
 - `src/lib/content.ts`
 - `src/lib/club-directory.ts`
 - `src/lib/live-club-pages.ts`
+- `supabase/README.md`
+- `supabase/migrations/`
 
 ### Brand handoff files
 

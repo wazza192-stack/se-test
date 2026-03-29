@@ -1,42 +1,11 @@
 ---
+import AwardsLandingPage from "../../components/awards/AwardsLandingPage.astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import { awardsFacts, awardsHighlights } from "../../data/site";
+import { getAwardsLandingPage, getAwardsProgrammes } from "../../lib/awards-content";
+
+const [page, programmes] = await Promise.all([getAwardsLandingPage(), getAwardsProgrammes()]);
 ---
 
-<BaseLayout
-  title="Awards"
-  description="Stadium Events & Hospitality Awards information, tickets and sponsorship."
->
-  <section class="page-hero">
-    <p class="eyebrow">Awards</p>
-    <h1>A premium destination for the awards programme.</h1>
-    <p class="lede">
-      The awards deserve their own well-structured hub for tickets, sponsorship, FAQs,
-      accommodation and annual updates, rather than feeling folded into the wider site.
-    </p>
-  </section>
-
-  <section class="section section-tight">
-    <div class="detail-grid venue-detail-grid">
-      <article class="card info-card">
-        <p class="eyebrow">Programme overview</p>
-        <h2>Everything guests, sponsors and partners need in one place.</h2>
-        <ul class="feature-list">
-          {awardsHighlights.map((item) => (
-            <li>{item}</li>
-          ))}
-        </ul>
-      </article>
-      <article class="card info-card">
-        <p class="eyebrow">Why it matters</p>
-        <h2>A flagship moment for the network</h2>
-        <ul class="tag-list tag-list-plain">
-          {awardsFacts.map((fact) => (
-            <li>{fact}</li>
-          ))}
-        </ul>
-        <a class="button button-primary" href="/enquire/">Ask about tickets or sponsorship</a>
-      </article>
-    </div>
-  </section>
+<BaseLayout title="Awards" description={page.summary}>
+  <AwardsLandingPage page={page} programmes={programmes} />
 </BaseLayout>

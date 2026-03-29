@@ -5,15 +5,25 @@ export type VenueSpace = {
   standing: number;
 };
 
+export type PlanningFact = {
+  label: string;
+  value: string;
+};
+
 export type Venue = {
   slug: string;
   name: string;
   city: string;
   region: string;
+  address?: string;
+  latitude?: number;
+  longitude?: number;
+  crestImage?: string;
   heroImage: string;
   summary: string;
   description: string;
   guestCapacityLabel: string;
+  planningFacts: PlanningFact[];
   eventTypes: string[];
   features: string[];
   spaces: VenueSpace[];
@@ -26,6 +36,8 @@ export type NewsPost = {
   publishedAt: string;
   excerpt: string;
   body: string[];
+  coverImage?: string | null;
+  seo?: SeoMeta | null;
 };
 
 export type SupplierFeature = {
@@ -33,13 +45,71 @@ export type SupplierFeature = {
   name: string;
   summary: string;
   category: string;
+  body?: string[];
+  sortOrder?: number | null;
+  seo?: SeoMeta | null;
+};
+
+export type SeoMeta = {
+  metaTitle?: string | null;
+  metaDescription?: string | null;
+  canonicalUrl?: string | null;
+  canonicalPath?: string | null;
+  ogTitle?: string | null;
+  ogDescription?: string | null;
+  ogImage?: string | null;
+  socialImage?: string | null;
+  noindex?: boolean;
+};
+
+export type MarketingLink = {
+  label: string;
+  href: string;
+};
+
+export type MarketingPageHero = {
+  eyebrow?: string | null;
+  title: string;
+  intro?: string | null;
+};
+
+export type MarketingCallout = {
+  eyebrow?: string | null;
+  title: string;
+  body: string[];
+  cta?: MarketingLink | null;
+};
+
+export type MarketingPageContent = {
+  hero: MarketingPageHero;
+  benefitsHeading?: string | null;
+  benefits: string[];
+  callout?: MarketingCallout | null;
+  seo?: SeoMeta | null;
 };
 
 export type JobListing = {
+  slug: string;
   title: string;
   location: string;
+  crestUrl?: string | null;
   type: string;
   summary: string;
+  sections: {
+    heading: string;
+    content?: string;
+    body: string[];
+    bullets?: {
+      text: string;
+      level: number;
+    }[];
+  }[];
+  salary?: string | null;
+  hours?: string | null;
+  jobLocation?: string | null;
+  closingDate?: string | null;
+  applicationUrl?: string | null;
+  contactEmail?: string | null;
 };
 
 export type EventItem = {
@@ -109,6 +179,11 @@ export const venues: Venue[] = [
     description:
       "Edgbaston is well suited to awards, exhibitions and conferences that need a strong Midlands location, memorable views and varied room formats, with flexible hospitality spaces for both large and smaller events.",
     guestCapacityLabel: "Up to 800 guests",
+    planningFacts: [
+      { label: "Best for", value: "Awards dinners and exhibitions" },
+      { label: "Spaces", value: "3 flexible event spaces" },
+      { label: "Highlights", value: "Pitch views and breakout rooms" }
+    ],
     eventTypes: ["Awards dinners", "Exhibitions", "Conferences"],
     features: ["Pitch views", "Breakout rooms", "Private dining", "On-site AV support"],
     spaces: [
@@ -128,6 +203,11 @@ export const venues: Venue[] = [
     description:
       "Headingley works well for event buyers who want a high-recognition stadium venue outside London, with accessible meeting rooms, hospitality-led spaces and a strong mix of business and seasonal event options.",
     guestCapacityLabel: "Up to 500 guests",
+    planningFacts: [
+      { label: "Best for", value: "Meetings and festive events" },
+      { label: "Spaces", value: "3 hospitality-led rooms" },
+      { label: "Highlights", value: "Parking and hybrid-ready rooms" }
+    ],
     eventTypes: ["Meetings", "Christmas parties", "Private dining"],
     features: ["City access", "Hospitality lounges", "Parking", "Hybrid-ready rooms"],
     spaces: [
@@ -147,6 +227,11 @@ export const venues: Venue[] = [
     description:
       "Twickenham represents the top end of the network for capacity and profile, ideal for national events, large conferences and premium awards evenings. The final build can let users compare venue scale quickly while still preserving each location's personality.",
     guestCapacityLabel: "1000+ guests",
+    planningFacts: [
+      { label: "Best for", value: "Large conferences and gala events" },
+      { label: "Spaces", value: "3 premium event settings" },
+      { label: "Highlights", value: "London location and VIP hospitality" }
+    ],
     eventTypes: ["Conferences", "Hospitality", "Awards dinners"],
     features: ["London location", "Large capacities", "VIP hospitality", "Signature event spaces"],
     spaces: [
@@ -189,19 +274,22 @@ export const supplierFeatures: SupplierFeature[] = [
     slug: "event-tech",
     name: "Event Technology Partners",
     summary: "Audio visual, staging and hybrid-event solutions designed for large venue teams.",
-    category: "Technology"
+    category: "Technology",
+    sortOrder: 1
   },
   {
     slug: "creative-services",
     name: "Creative Brand Activations",
     summary: "Campaign support for sponsors, event launches and on-site guest experiences.",
-    category: "Marketing"
+    category: "Marketing",
+    sortOrder: 2
   },
   {
     slug: "hospitality-support",
     name: "Hospitality Operations Support",
     summary: "Specialist staffing and service support for busy seasonal event programmes.",
-    category: "Operations"
+    category: "Operations",
+    sortOrder: 3
   }
 ];
 
@@ -254,6 +342,50 @@ export const newsContentBenefits = [
   "A stronger place for venue launches, seasonal campaigns and association updates",
   "Reusable article templates that are easier to manage year-round"
 ];
+
+export const latestNewsPageContent: MarketingPageContent = {
+  hero: {
+    eyebrow: "Latest news",
+    title: "Editorial content that keeps members visible and helps the site rank.",
+    intro:
+      "News, insight and venue updates are a major visibility driver for the network, especially when paired with category and regional landing pages."
+  },
+  benefitsHeading: "Keep the site active, useful and discoverable.",
+  benefits: newsContentBenefits,
+  callout: {
+    eyebrow: "Stay updated",
+    title: "Follow the latest venue and industry updates",
+    body: [
+      "Use editorial content to surface member news, venue launches, seasonal campaigns and practical advice for planners."
+    ],
+    cta: {
+      label: "Ask about newsletter sign-up",
+      href: "/enquire/"
+    }
+  }
+};
+
+export const suppliersPageContent: MarketingPageContent = {
+  hero: {
+    eyebrow: "Suppliers",
+    title: "Partnership routes that help suppliers connect with stadium venues.",
+    intro:
+      "Explore how suppliers can introduce products and services to the network, support industry meetings and build visibility through awards-related activity."
+  },
+  benefitsHeading: "Useful routes into the network, not just a brochure page.",
+  benefits: supplierBenefits,
+  callout: {
+    eyebrow: "Next step",
+    title: "Talk to the team about the right route",
+    body: [
+      "Whether you want to advertise, present at meetings or support the awards, the first step is a practical conversation about the best fit."
+    ],
+    cta: {
+      label: "Discuss supplier opportunities",
+      href: "/enquire/"
+    }
+  }
+};
 
 export const venueSearchBenefits = [
   "Compare regions, capacities and event types quickly",
@@ -332,22 +464,70 @@ export const whatsOnItems: EventItem[] = [
 
 export const jobListings: JobListing[] = [
   {
+    slug: "conference-and-events-sales-manager-aberdeen-football-club",
     title: "Conference & Events Sales Manager",
-    location: "Midlands",
+    location: "Aberdeen Football Club",
     type: "Full-time",
-    summary: "Lead venue sales activity across conferences, meetings and hospitality enquiries."
+    summary: "Lead venue sales activity across conferences, meetings and hospitality enquiries.",
+    sections: [
+      {
+        heading: "Job role",
+        body: [
+          "Lead the venue sales pipeline across meetings, conferences, dinners and hospitality-led events.",
+          "Work closely with venue colleagues to convert enquiries into confirmed business and support broader commercial targets."
+        ]
+      }
+    ],
+    salary: "Competitive",
+    hours: "Full-time",
+    jobLocation: "Aberdeen",
+    closingDate: "31 May 2026",
+    applicationUrl: null,
+    contactEmail: "office@stadiumexperience.com"
   },
   {
+    slug: "event-operations-coordinator-edgbaston",
     title: "Event Operations Coordinator",
-    location: "North",
+    location: "Edgbaston",
     type: "Full-time",
-    summary: "Support event delivery for business meetings, dinners and seasonal event programmes."
+    summary: "Support event delivery for business meetings, dinners and seasonal event programmes.",
+    sections: [
+      {
+        heading: "Job responsibilities",
+        body: [
+          "Coordinate operational planning for conferences, meetings, private dining and seasonal event activity.",
+          "Support venue teams with timelines, supplier coordination and smooth on-the-day delivery."
+        ]
+      }
+    ],
+    salary: "Competitive",
+    hours: "40 hours per week",
+    jobLocation: "Birmingham",
+    closingDate: "14 June 2026",
+    applicationUrl: null,
+    contactEmail: "office@stadiumexperience.com"
   },
   {
+    slug: "hospitality-and-matchday-sales-executive-chelsea-football-club",
     title: "Hospitality & Matchday Sales Executive",
-    location: "London",
+    location: "Chelsea Football Club",
     type: "Full-time",
-    summary: "Drive premium hospitality sales across corporate and private event products."
+    summary: "Drive premium hospitality sales across corporate and private event products.",
+    sections: [
+      {
+        heading: "Job role",
+        body: [
+          "Drive premium hospitality and matchday sales activity across corporate clients, private groups and event buyers.",
+          "Build relationships, handle enquiries and help grow repeat business across the venue calendar."
+        ]
+      }
+    ],
+    salary: "Competitive",
+    hours: "Full-time",
+    jobLocation: "London",
+    closingDate: "21 June 2026",
+    applicationUrl: null,
+    contactEmail: "office@stadiumexperience.com"
   }
 ];
 

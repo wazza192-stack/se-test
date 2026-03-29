@@ -18,6 +18,7 @@ This repository now contains a fresh starter for rebuilding `stadiumexperience.c
 - A server endpoint for enquiries in `src/pages/api/enquiries.ts`
 - Cloudflare config in `wrangler.jsonc`
 - Supabase schema starter in `supabase/schema.sql`
+- Supabase migration files in `supabase/migrations/`
 
 ## Suggested Supabase schema
 
@@ -64,10 +65,34 @@ npm run build
 
 Copy `.env.example` to `.env` and fill in:
 
+- `PUBLIC_SITE_URL`
+- `PUBLIC_CLUB_DIRECTORY_URL`
+- `PUBLIC_MEDIA_BASE_URL`
+- `PUBLIC_IMAGEKIT_URL_ENDPOINT`
+- `PUBLIC_OWNED_IMAGE_HOSTS`
+- `PUBLIC_OWNED_IMAGE_PREFIXES`
 - `PUBLIC_SUPABASE_URL`
 - `PUBLIC_SUPABASE_ANON_KEY`
 - or use `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
+- `IMAGEKIT_PRIVATE_KEY`
+
+## Supabase Schema Workflow
+
+This repo now uses a simple schema workflow:
+
+- add each new schema change as a SQL file in `supabase/migrations/`
+- apply the migration in Supabase SQL Editor
+- keep `supabase/schema.sql` updated as the latest schema snapshot
+
+Read:
+
+- `supabase/README.md`
+- `SUPABASE-CONTRACT.md`
+
+Current example migration:
+
+- `supabase/migrations/20260329_add_news_posts.sql`
 
 ## Admin area
 
@@ -82,13 +107,20 @@ simple website content editing.
 ## Deployment notes
 
 - The current Cloudflare adapter warns that a `SESSION` KV binding will be needed at deploy time.
+- Recommended media strategy: store editor-managed images in ImageKit and save the owned delivery URL into the existing Supabase `*_image_url` fields.
+- Set `PUBLIC_MEDIA_BASE_URL` and `PUBLIC_IMAGEKIT_URL_ENDPOINT` to your ImageKit URL endpoint, for example `https://ik.imagekit.io/your_imagekit_id`.
+- Set `PUBLIC_OWNED_IMAGE_PREFIXES` to that same ImageKit endpoint so shared image validation can recognise your account-specific delivery URLs.
+- Set `IMAGEKIT_PRIVATE_KEY` on the server so the admin upload flow can send files to ImageKit.
+- `MEDIA_BUCKET` in `wrangler.jsonc` is now optional and only needed if you want the older R2-backed fallback path.
+- Keep only stable brand/editorial assets in `public/assets/...`; do not rely on old WordPress upload URLs long term.
 - The enquiry endpoint will work in prototype mode without Supabase, but it only persists submissions once the Supabase env vars are configured.
 
 ## Club page migration
 
 Club pages currently support a migration bridge:
 
-- preferred source: `club_pages` in Supabase
+- canonical data source: `club_pages` in Supabase
 - fallback source: live public HTML from the existing Stadium Experience club pages
 
-Long term, the old-site HTML fallback should be removed once club content has been migrated into Supabase.
+Long term, the old-site HTML fallback should be removed once club content has been migrated into
+Supabase-backed website content.

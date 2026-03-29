@@ -1,0 +1,77 @@
+---
+import type { AwardsCategory } from "../../data/awards";
+import AwardsHero from "./AwardsHero.astro";
+import AwardsLinkGrid from "./AwardsLinkGrid.astro";
+import AwardsSectionBlocks from "./AwardsSectionBlocks.astro";
+import AwardsSponsorGrid from "./AwardsSponsorGrid.astro";
+
+type Props = {
+  category: AwardsCategory;
+};
+
+const { category } = Astro.props;
+const sponsor =
+  category.sponsorName
+    ? [{
+        name: category.sponsorName,
+        href: category.sponsorUrl ?? undefined,
+        logoUrl: category.sponsorLogoUrl ?? undefined,
+        description: category.sponsorDescription ?? undefined
+      }]
+    : [];
+const highlights = [category.eligibilityText, category.openedText, category.closesText].filter(
+  (item): item is string => Boolean(item)
+);
+---
+
+<AwardsHero
+  eyebrow={category.heroEyebrow}
+  title={category.title}
+  summary={category.summary}
+  heroLabel={category.shortTitle}
+  statusText={category.statusText}
+  heroImageUrl={category.heroImageUrl}
+  timeline={category.timeline}
+  highlights={highlights}
+  ctaLinks={category.ctaLinks}
+/>
+
+<section class="section section-tight">
+  <div class="detail-grid awards-intro-grid">
+    <article class="card info-card awards-story-card">
+      <p class="eyebrow">Award criteria</p>
+      <h2>What this category is looking for</h2>
+      <p>{category.criteriaIntro}</p>
+      <ul class="feature-list awards-feature-list">
+        {category.criteriaPoints.map((item) => <li>{item}</li>)}
+      </ul>
+    </article>
+
+    <article class="card info-card awards-stats-card">
+      <p class="eyebrow">Category facts</p>
+      <h2>Key details before you enter</h2>
+      <dl class="awards-stat-grid">
+        {category.stats.map((stat) => (
+          <div class="awards-stat-item">
+            <dt>{stat.label}</dt>
+            <dd>{stat.value}</dd>
+          </div>
+        ))}
+      </dl>
+      <div class="awards-category-copy">
+        {category.submissionText && <p><strong>Submission:</strong> {category.submissionText}</p>}
+        {category.judgingText && <p><strong>Judging:</strong> {category.judgingText}</p>}
+        {category.resultsText && <p><strong>Results:</strong> {category.resultsText}</p>}
+      </div>
+    </article>
+  </div>
+</section>
+
+<section class="section section-tight">
+  <div class="detail-grid awards-content-grid">
+    <AwardsLinkGrid title="Useful category links" links={category.mediaLinks} />
+    <AwardsSectionBlocks sections={category.sections} />
+  </div>
+</section>
+
+<AwardsSponsorGrid title="Category sponsor" sponsors={sponsor} />

@@ -3,6 +3,13 @@
   "name": "stadium-experience",
   "compatibility_date": "2026-03-17",
   "compatibility_flags": ["nodejs_compat"],
+  // Optional R2 fallback media setup:
+  // "r2_buckets": [
+  //   {
+  //     "binding": "MEDIA_BUCKET",
+  //     "bucket_name": "stadium-experience-media"
+  //   }
+  // ],
   "observability": {
     "enabled": true
   }

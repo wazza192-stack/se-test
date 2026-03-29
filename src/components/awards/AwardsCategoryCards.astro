@@ -1,0 +1,36 @@
+---
+import type { AwardsCategory } from "../../data/awards";
+
+type Props = {
+  categories: AwardsCategory[];
+  title?: string;
+  summary?: string | null;
+};
+
+const { categories, title = "Award categories", summary } = Astro.props;
+---
+
+{categories.length > 0 && (
+  <section class="section section-tight">
+    <div class="section-heading">
+      <p class="eyebrow">Categories</p>
+      <h2>{title}</h2>
+      {summary && <p class="lede">{summary}</p>}
+    </div>
+
+    <div class="awards-category-grid">
+      {categories.map((category) => (
+        <article class="card info-card awards-category-card">
+          {category.statusText && <span class="admin-status-pill is-published">{category.statusText}</span>}
+          <h3>{category.title}</h3>
+          <p>{category.summary}</p>
+          <div class="awards-category-meta">
+            {category.eligibilityText && <span>{category.eligibilityText}</span>}
+            {category.closesText && <span>{category.closesText}</span>}
+          </div>
+          <a class="button button-secondary" href={`/awards/${category.slug}/`}>View category</a>
+        </article>
+      ))}
+    </div>
+  </section>
+)}

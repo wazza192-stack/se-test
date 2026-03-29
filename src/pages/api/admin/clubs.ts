@@ -8,8 +8,8 @@ type ClubPageListRow = {
   slug: string;
   club_name: string;
   crest_url: string | null;
-  venue_name: string | null;
   published: boolean;
+  archived: boolean;
   updated_at: string | null;
 };
 
@@ -24,10 +24,26 @@ export const GET: APIRoute = async ({ request }) => {
     return new Response("Supabase admin is not configured.", { status: 500 });
   }
 
-  const { data, error } = (await supabaseAdmin
+  const primaryQuery = (await supabaseAdmin
     .from("club_pages")
-    .select("slug, club_name, crest_url, venue_name, published, updated_at")
+    .select("slug, club_name, crest_url, published, archived, updated_at")
     .order("club_name")) as { data: ClubPageListRow[] | null; error: unknown };
+
+  let data = primaryQuery.data;
+  let error = primaryQuery.error;
+
+  if (error) {
+    const fallbackQuery = (await supabaseAdmin
+      .from("club_pages")
+      .select("slug, club_name, crest_url, published, updated_at")
+      .order("club_name")) as {
+      data: Omit<ClubPageListRow, "archived">[] | null;
+      error: unknown;
+    };
+
+    data = fallbackQuery.data?.map((club) => ({ ...club, archived: false })) ?? null;
+    error = fallbackQuery.error;
+  }
 
   if (error) {
     return new Response("Unable to load club pages.", { status: 500 });
@@ -82,7 +98,7 @@ export const POST: APIRoute = async ({ request }) => {
   const { data, error } = await supabaseAdmin
     .from("club_pages")
     .insert(draft)
-    .select("slug, club_name, crest_url, venue_name, published, updated_at")
+    .select("slug, club_name, crest_url, published, archived, updated_at")
     .single<ClubPageListRow>();
 
   if (error || !data) {

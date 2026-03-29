@@ -1,0 +1,28 @@
+---
+import type { AwardsFaqItem } from "../../data/awards";
+
+type Props = {
+  title?: string;
+  items: AwardsFaqItem[];
+};
+
+const { title = "Frequently asked questions", items } = Astro.props;
+---
+
+{items.length > 0 && (
+  <section class="section section-tight">
+    <div class="section-heading">
+      <p class="eyebrow">FAQ</p>
+      <h2>{title}</h2>
+    </div>
+
+    <div class="awards-faq-list">
+      {items.map((item) => (
+        <details class="awards-faq-item">
+          <summary>{item.question}</summary>
+          <p>{item.answer}</p>
+        </details>
+      ))}
+    </div>
+  </section>
+)}

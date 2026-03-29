@@ -11,10 +11,9 @@ export type ClubSizeRecord = {
   raw: GenericRow;
 };
 
-const slugKeys = ["slug", "club_slug", "team_slug", "name_slug", "clubslug"] as const;
-const clubNameKeys = ["club_name", "name", "title", "club", "team_name", "member_name", "venue_name", "clubname"] as const;
-const sizeKeys = ["club_size", "size", "clubsize", "venue_size", "size_label"] as const;
-const idKeys = ["id", "club_id", "clubid"] as const;
+const slugKeys = ["slug"] as const;
+const clubNameKeys = ["club_name"] as const;
+const idKeys = ["id"] as const;
 
 function asString(value: unknown): string | null {
   return typeof value === "string" && value.trim() ? value.trim() : null;
@@ -54,22 +53,14 @@ function normalizeSize(value: unknown): string | null {
   return null;
 }
 
-function serializeSizeForColumn(column: string, value: string | null): string | null {
-  if (value === null) {
-    return null;
-  }
-
+function serializeSize(value: unknown): string | null {
   const normalized = normalizeSize(value);
 
   if (!normalized) {
     return null;
   }
 
-  if (column === "club_size" || column === "clubsize" || column === "size_label") {
-    return normalized.toLowerCase();
-  }
-
-  return normalized;
+  return normalized.toLowerCase();
 }
 
 function getField(row: GenericRow, keys: string[]): string | null {
@@ -93,13 +84,7 @@ function normalizeClubRow(row: GenericRow): ClubSizeRecord {
     id: (typeof idValue === "string" || typeof idValue === "number") ? idValue : null,
     slug: getField(row, [...slugKeys]),
     clubName: getField(row, [...clubNameKeys]),
-    size:
-      normalizeSize(row.club_size) ??
-      normalizeSize(row.size) ??
-      normalizeSize(row.clubsize) ??
-      normalizeSize(row.venue_size) ??
-      normalizeSize(row.size_label) ??
-      null,
+    size: normalizeSize(row.club_size) ?? null,
     raw: row
   };
 }
@@ -109,7 +94,9 @@ function normalizeSlug(value: string | null): string | null {
 }
 
 export async function getStadiumExperienceClubs(client: SupabaseClient): Promise<ClubSizeRecord[]> {
-  const { data, error } = await client.from("stadiumexperience_clubs").select("*");
+  const { data, error } = await client
+    .from("club_pages")
+    .select("id, slug, club_name, club_size");
 
   if (error) {
     throw new Error(error.message);
@@ -138,80 +125,38 @@ export async function saveClubSizeToDirectory(
   client: SupabaseClient,
   club: { slug: string; clubName: string; size: string | null }
 ): Promise<void> {
-  const rows = await getStadiumExperienceClubs(client);
-  const existing =
-    rows.find((row) => normalizeSlug(row.slug) && normalizeSlug(row.slug) === normalizeSlug(club.slug)) ??
-    rows.find((row) => row.clubName && slugifyClubName(row.clubName) === slugifyClubName(club.clubName));
+  const normalizedSize = serializeSize(club.size);
 
-  const matchedSizeKeys = existing
-    ? sizeKeys.filter((key) => Object.prototype.hasOwnProperty.call(existing.raw, key))
-    : [];
-  const preferredSizeKeys = matchedSizeKeys.length ? matchedSizeKeys : ["club_size", "size"];
-  const sizePayloads = preferredSizeKeys.map((key) => ({ [key]: serializeSizeForColumn(key, club.size) }));
+  const { data: existing, error: lookupError } = await client
+    .from("club_pages")
+    .select("id, slug, club_name")
+    .or(`slug.eq.${club.slug},club_name.eq.${club.clubName}`)
+    .limit(1)
+    .maybeSingle();
 
-  if (existing) {
-    const errors: string[] = [];
-    const identifierMatchers: Array<{ key: string; value: string | number }> = [];
-
-    idKeys.forEach((key) => {
-      const value = existing.raw[key];
-      if (typeof value === "string" || typeof value === "number") {
-        identifierMatchers.push({ key, value });
-      }
-    });
-
-    slugKeys.forEach((key) => {
-      const value = asString(existing.raw[key]);
-      if (value) {
-        identifierMatchers.push({ key, value });
-      }
-    });
-
-    clubNameKeys.forEach((key) => {
-      const value = asString(existing.raw[key]);
-      if (value) {
-        identifierMatchers.push({ key, value });
-      }
-    });
-
-    if (!identifierMatchers.length) {
-      throw new Error("Found a matching club in stadiumexperience_clubs, but could not find a usable id, slug or name column to update.");
-    }
-
-    for (const payload of sizePayloads) {
-      for (const matcher of identifierMatchers) {
-        const { error } = await client.from("stadiumexperience_clubs").update(payload).eq(matcher.key, matcher.value);
-
-        if (!error) {
-          return;
-        }
-
-        const payloadKey = Object.keys(payload)[0] ?? "unknown";
-        errors.push(`${payloadKey} via ${matcher.key}: ${error.message}`);
-      }
-    }
-
-    throw new Error(`Unable to save club size to stadiumexperience_clubs. ${errors.join(" | ")}`);
+  if (lookupError) {
+    throw new Error(`Unable to find the club page before saving club size. ${lookupError.message}`);
   }
 
-  const insertPayloads = preferredSizeKeys.flatMap((sizeKey) => [
-    { slug: club.slug, club_name: club.clubName, [sizeKey]: serializeSizeForColumn(sizeKey, club.size) },
-    { slug: club.slug, name: club.clubName, [sizeKey]: serializeSizeForColumn(sizeKey, club.size) },
-    { club_slug: club.slug, club_name: club.clubName, [sizeKey]: serializeSizeForColumn(sizeKey, club.size) },
-    { club_slug: club.slug, name: club.clubName, [sizeKey]: serializeSizeForColumn(sizeKey, club.size) }
-  ]);
-  const insertErrors: string[] = [];
-
-  for (const payload of insertPayloads) {
-    const { error } = await client.from("stadiumexperience_clubs").insert(payload);
-
-    if (!error) {
-      return;
-    }
-
-    const payloadKeys = Object.keys(payload).join(", ");
-    insertErrors.push(`${payloadKeys}: ${error.message}`);
+  if (!existing) {
+    throw new Error("Unable to save club size because no matching club page was found.");
   }
 
-  throw new Error(`Unable to create a size record in stadiumexperience_clubs. ${insertErrors.join(" | ")}`);
+  const matcherKey = typeof existing.id === "string" ? "id" : (existing.slug ? "slug" : "club_name");
+  const matcherValue = typeof existing.id === "string"
+    ? existing.id
+    : (existing.slug ?? existing.club_name ?? null);
+
+  if (!matcherValue) {
+    throw new Error("Unable to save club size because the matching club page has no usable identifier.");
+  }
+
+  const { error } = await client
+    .from("club_pages")
+    .update({ club_size: normalizedSize })
+    .eq(matcherKey, matcherValue);
+
+  if (error) {
+    throw new Error(`Unable to save club size to club_pages. ${error.message}`);
+  }
 }

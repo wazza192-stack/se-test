@@ -3,7 +3,6 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import { getClubPageBySlug } from "../../lib/club-pages";
 
 const { slug } = Astro.params;
-
 let clubPage;
 
 try {
@@ -17,7 +16,6 @@ if (!clubPage) {
 }
 
 const club = clubPage?.club;
-
 const clubInitials = club
   ? club.name
       .split(/[\s&(]+/)
@@ -26,32 +24,58 @@ const clubInitials = club
       .map((part) => part[0]?.toUpperCase() ?? "")
       .join("")
   : "";
-
 const heroImage = clubPage?.heroImageUrl ?? null;
-const overviewHeading = clubPage?.introductionHeading ?? `Why planners choose ${clubPage?.venueName ?? club?.name ?? "this venue"}`;
+const clubName = clubPage?.clubName ?? club?.name ?? "this venue";
+const heroLead =
+  clubPage?.summary ??
+  (club ? `Explore venue information, event opportunities and public contact details for ${club.name}.` : "");
+const fallbackSeoTitle = club ? `${club.name} | Stadium Experience` : "Club not found | Stadium Experience";
+const fallbackSeoDescription =
+  clubPage?.summary ??
+  (club
+    ? `Explore venue information, key facts, event spaces and enquiry details for ${club.name}.`
+    : "The requested club page could not be found.");
+const canonicalPath = club ? `/clubs/${club.slug}/` : null;
+const overviewHeading = clubPage?.introductionHeading ?? `Why planners choose ${clubName}`;
+const sectionAnchorFor = (sectionKey: string, index: number) =>
+  sectionKey === "custom" ? `section-custom-${index + 1}` : `section-${sectionKey}`;
+const contentSections = clubPage?.contentSections.filter((section) => section.items.length) ?? [];
+const experiencesAnchor = "section-experiences";
+const mapAnchor = "section-map";
+const uniqueImageList = (items: Array<string | null | undefined>) =>
+  items.filter((item, index, array): item is string => Boolean(item) && array.indexOf(item) === index);
+const spacesGallery = uniqueImageList([clubPage?.heroImageUrl, clubPage?.playOnPitchImageUrl, clubPage?.christmasImageUrl]);
+const eventsGallery = uniqueImageList([clubPage?.playOnPitchImageUrl, clubPage?.christmasImageUrl, clubPage?.heroImageUrl]);
+const mapNarrative = [
+  clubPage?.summary,
+  ...(clubPage?.introduction.slice(0, 2) ?? [])
+].filter((paragraph, index, array): paragraph is string => Boolean(paragraph) && array.indexOf(paragraph) === index);
 const sectionLinks = [
   clubPage?.keyFacts.length ? { href: "#key-information", label: "Key Information" } : null,
-  clubPage?.spaces.length ? { href: "#spaces", label: "Spaces" } : null,
-  clubPage?.events.length ? { href: "#events", label: "Events" } : null,
-  (clubPage?.christmasText || clubPage?.playOnPitchText || clubPage?.toursText)
-    ? { href: "#experiences", label: "Experiences" }
-    : null,
-  clubPage?.mapEmbedUrl ? { href: "#map", label: "Map" } : null
+  ...contentSections.map((section, index) => ({
+    href: `#${sectionAnchorFor(section.sectionKey, index)}`,
+    label: section.heading
+  })),
+  clubPage?.specialExperiences.length ? { href: `#${experiencesAnchor}`, label: "Experiences" } : null,
+  clubPage?.mapEmbedUrl ? { href: `#${mapAnchor}`, label: "Map" } : null
 ].filter(Boolean);
 ---
 
 <BaseLayout
-  title={club ? club.name : "Club not found"}
-  description={
-    club
-      ? `${club.name} club profile, venue information and enquiry details.`
-      : "Club not found."
-  }
+  seo={clubPage?.seo}
+  title={fallbackSeoTitle}
+  description={fallbackSeoDescription}
+  canonicalPath={canonicalPath}
+  socialImage={heroImage}
+  noindex={!clubPage}
 >
   {clubPage ? (
     <div class="club-page-shell">
       <section class="club-hero section">
-        <div class:list={["club-hero-stage", !heroImage && "club-hero-stage-fallback"]} style={heroImage ? `--club-hero-image:url('${heroImage}')` : undefined}>
+        <div
+          class:list={["club-hero-stage", !heroImage && "club-hero-stage-fallback"]}
+          style={heroImage ? `--club-hero-image:url('${heroImage}')` : undefined}
+        >
           <div class="club-hero-overlay"></div>
           <div class="club-hero-card">
             <div class="club-hero-badge">
@@ -62,15 +86,21 @@ const sectionLinks = [
               )}
             </div>
             <div class="club-hero-copy-clean">
-              <p class="eyebrow">Club profile</p>
+              <p class="eyebrow">{clubPage.heroEyebrow ?? "Club profile"}</p>
               <h1>{club.name}</h1>
-              {clubPage?.venueName && <p class="club-hero-venue-clean">{clubPage.venueName}</p>}
-              <p class="lede">
-                Explore venue information, event opportunities and public contact details for {club.name}.
-              </p>
+              <p class="club-hero-venue-clean">{clubName}</p>
+              <p class="lede">{heroLead}</p>
+              {clubPage.heroCaption && <p class="club-hero-caption">{clubPage.heroCaption}</p>}
               <div class="hero-actions">
-                <a class="button button-primary" href="/enquire/">Enquire Today</a>
-                {clubPage?.websiteHref && (
+                <a class="button button-primary" href={`/enquire/?venue=${encodeURIComponent(club.slug)}`}>
+                  Enquire Today
+                </a>
+                {clubPage.primaryCtas.slice(0, 2).map((cta) => (
+                  <a class="button button-secondary" href={cta.href} target="_blank" rel="noreferrer">
+                    {cta.label}
+                  </a>
+                ))}
+                {!clubPage.primaryCtas.length && clubPage.websiteHref && (
                   <a class="button button-secondary" href={clubPage.websiteHref} target="_blank" rel="noreferrer">
                     Visit venue website
                   </a>
@@ -84,13 +114,13 @@ const sectionLinks = [
 
       <section class="section section-tight club-info-band-section">
         <div class="club-info-band">
-          {clubPage?.address && (
+          {clubPage.address && (
             <article class="club-info-item">
               <span class="filter-label">Address</span>
               <strong>{clubPage.address}</strong>
             </article>
           )}
-          {clubPage?.websiteUrl && (
+          {clubPage.websiteUrl && (
             <article class="club-info-item">
               <span class="filter-label">Website</span>
               <strong>
@@ -105,14 +135,14 @@ const sectionLinks = [
               </strong>
             </article>
           )}
-          {clubPage?.nonMatchday && (
+          {clubPage.nonMatchday && (
             <article class="club-info-item">
               <span class="filter-label">Non-matchday events</span>
               <strong>{clubPage.nonMatchday.phone ?? "Phone on request"}</strong>
               {clubPage.nonMatchday.email && <p>{clubPage.nonMatchday.email}</p>}
             </article>
           )}
-          {clubPage?.matchday && (
+          {clubPage.matchday && (
             <article class="club-info-item">
               <span class="filter-label">Matchday hospitality</span>
               <strong>{clubPage.matchday.phone ?? "Phone on request"}</strong>
@@ -137,7 +167,7 @@ const sectionLinks = [
           <article class="card info-card club-panel club-panel-lead">
             <p class="eyebrow">Overview</p>
             <h2 class="club-section-title">{overviewHeading}</h2>
-            {(clubPage?.introduction.length
+            {(clubPage.introduction.length
               ? clubPage.introduction
               : [`Explore venue and event opportunities connected with ${club.name}, then move into a direct enquiry with Stadium Experience.`]
             ).map((paragraph) => (
@@ -149,14 +179,17 @@ const sectionLinks = [
             <h2 class="club-section-title">Plan your next step</h2>
             <ul class="feature-list">
               <li>Review key facts before you shortlist the venue</li>
-              <li>Explore space and event options in one place</li>
-              <li>Use the direct enquiry route for planning support</li>
+              <li>Explore the most relevant venue sections in one place</li>
+              <li>Use direct enquiry routes and public contact details to move quickly</li>
             </ul>
             <div class="club-quick-links">
-              {clubPage?.socialLinks.map((link) => (
+              {clubPage.primaryCtas.map((link) => (
                 <a class="pill" href={link.href} target="_blank" rel="noreferrer">{link.label}</a>
               ))}
-              {clubPage?.tourBookingHref && (
+              {clubPage.socialLinks.map((link) => (
+                <a class="pill" href={link.href} target="_blank" rel="noreferrer">{link.label}</a>
+              ))}
+              {!clubPage.primaryCtas.length && clubPage.tourBookingHref && (
                 <a class="pill" href={clubPage.tourBookingHref} target="_blank" rel="noreferrer">
                   Book a Tour
                 </a>
@@ -166,7 +199,7 @@ const sectionLinks = [
         </div>
       </section>
 
-      {clubPage?.keyFacts.length ? (
+      {clubPage.keyFacts.length ? (
         <section class="section section-tight club-section-shell" id="key-information">
           <div class="club-facts-board">
             <div class="club-facts-intro">
@@ -189,106 +222,149 @@ const sectionLinks = [
         </section>
       ) : null}
 
-      {clubPage?.spaces.length ? (
-        <section class="section section-tight club-section-shell" id="spaces">
+      {contentSections.map((section, index) => (
+        <section
+          class="section section-tight club-section-shell"
+          id={sectionAnchorFor(section.sectionKey, index)}
+        >
           <div class="section-heading club-section-heading">
-            <p class="eyebrow">Spaces for hire</p>
-            <h2 class="club-section-title">Spaces available at {clubPage.venueName ?? club.name}</h2>
+            <p class="eyebrow">
+              {section.eyebrow ??
+                (section.sectionKey === "spaces"
+                  ? "Spaces for hire"
+                  : section.sectionKey === "events"
+                    ? "Events"
+                    : "Details")}
+            </p>
+            <h2 class="club-section-title">{section.heading}</h2>
+            {section.intro && <p class="club-section-intro">{section.intro}</p>}
           </div>
-          <div class="card-grid space-grid">
-            {clubPage.spaces.map((space) => (
-              <article class="card space-card club-panel club-panel-soft">
-                <h3>{space.title}</h3>
-                <p>{space.body}</p>
-              </article>
-            ))}
+          <div class="club-editorial-grid">
+            <div class="club-editorial-copy">
+              {section.items.map((item, itemIndex) => (
+                <article class:list={["club-editorial-feature", itemIndex === 0 && "is-featured"]}>
+                  <h3>{item.title}</h3>
+                  <p>{item.body}</p>
+                  {item.cta && (
+                    <a class="text-link club-item-link" href={item.cta.href} target="_blank" rel="noreferrer">
+                      {item.cta.label}
+                    </a>
+                  )}
+                </article>
+              ))}
+              <div class="club-editorial-actions">
+                <a class="button button-primary" href={`/enquire/?venue=${encodeURIComponent(club.slug)}`}>
+                  Enquire Today
+                </a>
+              </div>
+            </div>
+            <div class="club-editorial-visual">
+              {((section.sectionKey === "spaces" ? spacesGallery : eventsGallery).length
+                ? (section.sectionKey === "spaces" ? spacesGallery : eventsGallery)
+                : uniqueImageList(section.items.map((item) => item.imageUrl))).length ? (
+                <>
+                  <div class="club-editorial-main-image">
+                    <img
+                      src={((section.sectionKey === "spaces" ? spacesGallery : eventsGallery).length
+                        ? (section.sectionKey === "spaces" ? spacesGallery : eventsGallery)
+                        : uniqueImageList(section.items.map((item) => item.imageUrl)))[0]}
+                      alt={`${section.heading} at ${clubName}`}
+                      loading="lazy"
+                    />
+                  </div>
+                  {(((section.sectionKey === "spaces" ? spacesGallery : eventsGallery).length
+                    ? (section.sectionKey === "spaces" ? spacesGallery : eventsGallery)
+                    : uniqueImageList(section.items.map((item) => item.imageUrl))).slice(1, 4)).length ? (
+                    <div class="club-editorial-thumbs">
+                      {(((section.sectionKey === "spaces" ? spacesGallery : eventsGallery).length
+                        ? (section.sectionKey === "spaces" ? spacesGallery : eventsGallery)
+                        : uniqueImageList(section.items.map((item) => item.imageUrl))).slice(1, 4)).map((imageUrl) => (
+                        <div class="club-editorial-thumb">
+                          <img src={imageUrl} alt="" loading="lazy" />
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+                </>
+              ) : null}
+            </div>
           </div>
         </section>
-      ) : null}
+      ))}
 
-      {clubPage?.events.length ? (
-        <section class="section section-tight club-section-shell" id="events">
-          <div class="section-heading club-section-heading">
-            <p class="eyebrow">Events</p>
-            <h2 class="club-section-title">Popular event types</h2>
-          </div>
-          <div class="card-grid">
-            {clubPage.events.map((eventItem) => (
-              <article class="card club-panel club-panel-soft">
-                <h3>{eventItem.title}</h3>
-                <p>{eventItem.body}</p>
-              </article>
-            ))}
-          </div>
-        </section>
-      ) : null}
-
-      {(clubPage?.christmasText || clubPage?.playOnPitchText || clubPage?.toursText) ? (
-        <section class="section section-tight club-section-shell" id="experiences">
+      {clubPage.specialExperiences.length ? (
+        <section class="section section-tight club-section-shell" id={experiencesAnchor}>
           <div class="section-heading club-section-heading">
             <p class="eyebrow">Experiences</p>
             <h2 class="club-section-title">Seasonal and special experiences</h2>
           </div>
-          <div class="card-grid card-grid-two">
-            {clubPage?.christmasText && (
-              <article class="card info-card club-panel club-panel-soft">
-                {clubPage.christmasImageUrl && (
-                  <div class="context-image-wrap">
+          <div class="club-editorial-rows">
+            {clubPage.specialExperiences.map((experience, index) => (
+              <article class:list={["club-editorial-row", index % 2 === 1 && "is-reversed"]}>
+                {experience.imageUrl ? (
+                  <div class="club-editorial-row-image">
                     <img
                       class="context-image"
-                      src={clubPage.christmasImageUrl}
-                      alt={`Christmas events at ${clubPage.venueName ?? club.name}`}
+                      src={experience.imageUrl}
+                      alt={experience.imageAlt ?? `${experience.title} at ${clubName}`}
                       loading="lazy"
                     />
                   </div>
-                )}
-                <p class="eyebrow">Christmas</p>
-                <h3>Festive events</h3>
-                <p>{clubPage.christmasText}</p>
-              </article>
-            )}
-            {clubPage?.playOnPitchText && (
-              <article class="card info-card club-panel club-panel-soft">
-                {clubPage.playOnPitchImageUrl && (
-                  <div class="context-image-wrap">
-                    <img
-                      class="context-image"
-                      src={clubPage.playOnPitchImageUrl}
-                      alt={`Play on the pitch at ${clubPage.venueName ?? club.name}`}
-                      loading="lazy"
-                    />
+                ) : null}
+                <div class="club-editorial-row-copy">
+                  {experience.eyebrow && <p class="eyebrow">{experience.eyebrow}</p>}
+                  <h3>{experience.title}</h3>
+                  {experience.summary && <p>{experience.summary}</p>}
+                  {experience.body
+                    .filter((paragraph) => paragraph !== experience.summary)
+                    .map((paragraph) => (
+                      <p>{paragraph}</p>
+                    ))}
+                  <div class="club-editorial-actions">
+                    {experience.ctas.length ? (
+                      experience.ctas.map((cta) => (
+                        <a class="button button-secondary" href={cta.href} target="_blank" rel="noreferrer">{cta.label}</a>
+                      ))
+                    ) : (
+                      <a class="button button-secondary" href={`/enquire/?venue=${encodeURIComponent(club.slug)}`}>
+                        Enquire Today
+                      </a>
+                    )}
                   </div>
-                )}
-                <p class="eyebrow">Play on the pitch</p>
-                <h3>Experiences and hospitality</h3>
-                <p>{clubPage.playOnPitchText}</p>
+                </div>
               </article>
-            )}
-            {clubPage?.toursText && (
-              <article class="card info-card club-panel club-panel-soft">
-                <p class="eyebrow">Stadium tours</p>
-                <h3>Take a tour</h3>
-                <p>{clubPage.toursText}</p>
-              </article>
-            )}
+            ))}
           </div>
         </section>
       ) : null}
 
-      {clubPage?.mapEmbedUrl ? (
-        <section class="section section-tight club-section-shell" id="map">
+      {clubPage.mapEmbedUrl ? (
+        <section class="section section-tight club-section-shell" id={mapAnchor}>
           <div class="section-heading club-section-heading">
             <p class="eyebrow">Map</p>
             <h2 class="club-section-title">Find the venue</h2>
           </div>
-          <div class="club-map-shell">
-            <iframe
-              class="club-map"
-              title={`Map for ${club.name}`}
-              src={clubPage.mapEmbedUrl}
-              loading="lazy"
-              referrerpolicy="no-referrer-when-downgrade"
-            ></iframe>
+          <div class="club-map-layout">
+            <div class="club-map-shell">
+              <iframe
+                class="club-map"
+                title={`Map for ${club.name}`}
+                src={clubPage.mapEmbedUrl}
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+              ></iframe>
+            </div>
+            <div class="club-map-copy">
+              <h3>{overviewHeading}</h3>
+              {mapNarrative.map((paragraph) => (
+                <p>{paragraph}</p>
+              ))}
+              <div class="club-editorial-actions">
+                <a class="button button-secondary" href={`/enquire/?venue=${encodeURIComponent(club.slug)}`}>
+                  Enquire Today
+                </a>
+              </div>
+            </div>
           </div>
         </section>
       ) : null}
@@ -303,7 +379,9 @@ const sectionLinks = [
               event, location and guest numbers.
             </p>
           </div>
-          <a class="button button-primary" href="/enquire/">Make an enquiry</a>
+          <a class="button button-primary" href={`/enquire/?venue=${encodeURIComponent(club.slug)}`}>
+            Make an enquiry
+          </a>
         </div>
       </section>
     </div>

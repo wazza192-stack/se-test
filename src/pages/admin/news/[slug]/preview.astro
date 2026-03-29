@@ -1,0 +1,149 @@
+---
+import BaseLayout from "../../../../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="News Preview" description="Preview an unpublished Stadium Experience news article." chrome="admin" noindex={true}>
+  <section class="page-hero page-hero-tight">
+    <p class="eyebrow">Admin</p>
+    <h1>News article preview</h1>
+    <p class="lede">Review this article in a live-style layout before publishing it.</p>
+  </section>
+
+  <section class="section section-tight">
+    <div class="admin-gate" data-admin-gate>
+      <div class="directory-message-card" data-admin-loading>
+        <p class="eyebrow">Checking access</p>
+        <h3>Verifying your session.</h3>
+        <p>Please wait while we confirm your admin login.</p>
+      </div>
+
+      <div class="directory-message-card" data-admin-denied hidden>
+        <p class="eyebrow">Sign-in required</p>
+        <h3>You need to sign in before accessing this preview.</h3>
+        <p><a class="text-link" href="/admin/login/">Go to admin login</a></p>
+      </div>
+
+      <div class="stack" data-admin-ready hidden>
+        <div class="admin-toolbar">
+          <div>
+            <p class="eyebrow">Preview mode</p>
+            <h2 class="club-section-title" data-preview-heading>Loading preview</h2>
+          </div>
+          <div class="admin-toolbar-actions">
+            <a class="button button-secondary" data-editor-link href="/admin/news/">Back to editor</a>
+          </div>
+        </div>
+
+        <article class="article">
+          <p class="eyebrow" data-article-date>Publish date</p>
+          <h1 data-article-title>Article title</h1>
+          <p class="lede" data-article-excerpt>Short summary appears here.</p>
+          <img class="article-image" data-article-image hidden alt="" />
+          <div class="article-body" data-article-body></div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    import { verifyAdminBrowserSession } from "../../../../lib/admin-browser-auth";
+    import { normaliseNewsBody } from "../../../../lib/news-posts";
+    import { getBrowserSupabase } from "../../../../lib/supabase-browser";
+
+    const slug = window.location.pathname.split("/").filter(Boolean).at(-2);
+    const supabase = getBrowserSupabase();
+    const loading = document.querySelector("[data-admin-loading]");
+    const denied = document.querySelector("[data-admin-denied]");
+    const ready = document.querySelector("[data-admin-ready]");
+    const previewHeading = document.querySelector("[data-preview-heading]");
+    const editorLink = document.querySelector("[data-editor-link]");
+    const dateElement = document.querySelector("[data-article-date]");
+    const titleElement = document.querySelector("[data-article-title]");
+    const excerptElement = document.querySelector("[data-article-excerpt]");
+    const imageElement = document.querySelector("[data-article-image]");
+    const bodyElement = document.querySelector("[data-article-body]");
+
+    const setState = (state) => {
+      loading.hidden = state !== "loading";
+      denied.hidden = state !== "denied";
+      ready.hidden = state !== "ready";
+    };
+
+    const redirectToLogin = () => {
+      window.location.href = "/admin/login/";
+    };
+
+    const renderPreview = (article) => {
+      const paragraphs = normaliseNewsBody(article.body);
+
+      if (previewHeading) {
+        previewHeading.textContent = article.title ?? "Article preview";
+      }
+
+      if (editorLink && slug) {
+        editorLink.href = `/admin/news/${slug}/`;
+      }
+
+      if (dateElement) {
+        dateElement.textContent = article.published_at
+          ? new Date(article.published_at).toLocaleDateString("en-GB", { dateStyle: "long" })
+          : "Draft article";
+      }
+
+      if (titleElement) {
+        titleElement.textContent = article.title ?? "Article title";
+      }
+
+      if (excerptElement) {
+        excerptElement.textContent = article.excerpt ?? "Short summary appears here.";
+      }
+
+      if (imageElement) {
+        const imageUrl = typeof article.cover_image_url === "string" ? article.cover_image_url.trim() : "";
+        imageElement.hidden = !imageUrl;
+        imageElement.src = imageUrl;
+      }
+
+      if (bodyElement) {
+        bodyElement.replaceChildren();
+        (paragraphs.length ? paragraphs : [article.excerpt ?? "Article body preview"]).forEach((paragraph) => {
+          const node = document.createElement("p");
+          node.textContent = paragraph;
+          bodyElement.appendChild(node);
+        });
+      }
+    };
+
+    const loadPreview = async () => {
+      if (!supabase || !slug) {
+        setState("denied");
+        redirectToLogin();
+        return;
+      }
+
+      const verifiedSession = await verifyAdminBrowserSession(supabase);
+
+      if (!verifiedSession.ok) {
+        setState("denied");
+        redirectToLogin();
+        return;
+      }
+
+      const { data: article, error } = await supabase
+        .from("news_posts")
+        .select("slug, title, excerpt, body, cover_image_url, seo, published, published_at")
+        .eq("slug", slug)
+        .maybeSingle();
+
+      if (error || !article) {
+        setState("denied");
+        return;
+      }
+
+      setState("ready");
+      renderPreview(article);
+    };
+
+    loadPreview();
+  </script>
+</BaseLayout>

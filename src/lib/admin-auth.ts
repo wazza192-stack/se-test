@@ -49,6 +49,26 @@ export async function requireAdminRequest(request: Request): Promise<AdminReques
     };
   }
 
+  const { data: profile, error: profileError } = await supabaseAdmin
+    .from("profiles")
+    .select("role")
+    .eq("id", data.user.id)
+    .maybeSingle<{ role: string | null }>();
+
+  if (profileError) {
+    return {
+      ok: false,
+      response: new Response("Admin profile could not be verified.", { status: 500 })
+    };
+  }
+
+  if (profile?.role !== "admin") {
+    return {
+      ok: false,
+      response: new Response("Admin access is required.", { status: 403 })
+    };
+  }
+
   return {
     ok: true,
     token,

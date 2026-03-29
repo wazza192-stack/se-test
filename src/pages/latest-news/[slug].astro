@@ -3,22 +3,36 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import { getNewsPostBySlug } from "../../lib/content";
 
 const { slug } = Astro.params;
-const post = slug ? await getNewsPostBySlug(slug) : undefined;
+
+if (!slug) {
+  return Astro.redirect("/latest-news/");
+}
+const post = await getNewsPostBySlug(slug);
 
 if (!post) {
   return Astro.redirect("/latest-news/");
 }
 ---
 
-<BaseLayout title={post.title} description={post.excerpt}>
-  <article class="article">
-    <p class="eyebrow">{new Date(post.publishedAt).toLocaleDateString("en-GB", { dateStyle: "long" })}</p>
-    <h1>{post.title}</h1>
-    <p class="lede">{post.excerpt}</p>
-    <div class="article-body">
-      {post.body.map((paragraph) => (
-        <p>{paragraph}</p>
-      ))}
-    </div>
-  </article>
+<BaseLayout
+  seo={post?.seo}
+  title={post?.seo?.metaTitle ?? post?.title ?? "News article unavailable"}
+  description={post?.seo?.metaDescription ?? post?.excerpt ?? "News article unavailable."}
+  canonicalPath={post ? `/latest-news/${post.slug}/` : null}
+  socialImage={post?.coverImage}
+  noindex={post?.seo?.noindex}
+>
+  {post && (
+    <article class="article">
+      <p class="eyebrow">{new Date(post.publishedAt).toLocaleDateString("en-GB", { dateStyle: "long" })}</p>
+      <h1>{post.title}</h1>
+      <p class="lede">{post.excerpt}</p>
+      {post.coverImage && <img class="article-image" src={post.coverImage} alt="" loading="lazy" />}
+      <div class="article-body">
+        {post.body.map((paragraph) => (
+          <p>{paragraph}</p>
+        ))}
+      </div>
+    </article>
+  )}
 </BaseLayout>

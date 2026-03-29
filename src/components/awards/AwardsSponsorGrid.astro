@@ -1,0 +1,43 @@
+---
+import type { AwardsSponsor } from "../../data/awards";
+
+type Props = {
+  title?: string | null;
+  summary?: string | null;
+  sponsors: AwardsSponsor[];
+};
+
+const { title = "Awards partners", summary, sponsors } = Astro.props;
+---
+
+{sponsors.length > 0 && (
+  <section class="section section-tight">
+    <div class="section-heading section-heading-with-action">
+      <div>
+        <p class="eyebrow">Sponsors</p>
+        <h2>{title}</h2>
+        {summary && <p class="lede">{summary}</p>}
+      </div>
+    </div>
+
+    <div class="awards-sponsor-grid">
+      {sponsors.map((sponsor) => {
+        const content = (
+          <>
+            <strong>{sponsor.name}</strong>
+            {sponsor.meta && <span class="awards-sponsor-meta">{sponsor.meta}</span>}
+            {sponsor.description && <p>{sponsor.description}</p>}
+          </>
+        );
+
+        return sponsor.href ? (
+          <a class="awards-sponsor-card" href={sponsor.href} target="_blank" rel="noreferrer">
+            {content}
+          </a>
+        ) : (
+          <div class="awards-sponsor-card">{content}</div>
+        );
+      })}
+    </div>
+  </section>
+)}

@@ -1,4 +1,5 @@
 import type { ClubDirectoryClub } from "./club-directory";
+import { resolveImageUrl, stripLegacyImageUrl } from "./media";
 import { slugifyClubName } from "./club-slugs";
 
 export type ClubContactDetails = {
@@ -18,7 +19,6 @@ export type ClubKeyFact = {
 
 export type LiveClubPage = {
   sourceUrl: string;
-  venueName: string | null;
   address: string | null;
   websiteUrl: string | null;
   websiteHref: string | null;
@@ -175,18 +175,6 @@ function buildMapEmbedUrl(address: string | null): string | null {
   return `https://maps.google.com/maps?q=${encodeURIComponent(address)}&output=embed`;
 }
 
-function normalizeImageUrl(src: string | undefined | null, baseSiteUrl: string): string | null {
-  if (!src) {
-    return null;
-  }
-
-  if (/^https?:\/\//i.test(src)) {
-    return src;
-  }
-
-  return `${baseSiteUrl.replace(/\/$/, "")}/${src.replace(/^\//, "")}`;
-}
-
 function extractImageUrls(html: string, club: ClubDirectoryClub, baseSiteUrl: string): string[] {
   const imageMatches = Array.from(
     html.matchAll(/<img[^>]+src=["']([^"']+)["'][^>]*?(?:alt=["']([^"']*)["'])?[^>]*>/gi)
@@ -210,7 +198,7 @@ function extractImageUrls(html: string, club: ClubDirectoryClub, baseSiteUrl: st
   for (const match of imageMatches) {
     const rawSrc = match[1];
     const alt = match[2] ?? "";
-    const absoluteSrc = normalizeImageUrl(rawSrc, baseSiteUrl);
+    const absoluteSrc = resolveImageUrl(rawSrc, baseSiteUrl);
     if (!absoluteSrc) {
       continue;
     }
@@ -260,12 +248,12 @@ function extractFirstImageFromSection(
   const sectionHtml = tail.slice(0, endIndex);
   const imageMatch = sectionHtml.match(/<img[^>]+src=["']([^"']+)["']/i);
 
-  return imageMatch ? normalizeImageUrl(imageMatch[1], baseSiteUrl) : null;
+  return imageMatch ? resolveImageUrl(imageMatch[1], baseSiteUrl) : null;
 }
 
 function extractHrefByText(html: string, textPattern: RegExp, baseSiteUrl: string): string | null {
   const match = html.match(new RegExp(`<a[^>]+href=["']([^"']+)["'][^>]*>[\\s\\S]*?${textPattern.source}[\\s\\S]*?<\\/a>`, "i"));
-  return match ? normalizeImageUrl(match[1], baseSiteUrl) : null;
+  return match ? resolveImageUrl(match[1], baseSiteUrl) : null;
 }
 
 function extractSocialLinks(html: string, baseSiteUrl: string): { label: string; href: string }[] {
@@ -292,9 +280,6 @@ export function parseLiveClubPageHtml(
 ): LiveClubPage {
   const lines = htmlToLines(html);
   const clubIndex = findLineIndex(lines, (line) => line === club.name);
-
-  const venueName =
-    clubIndex !== -1 ? findFirstLine(lines.slice(clubIndex + 1, clubIndex + 8), (line) => line !== "Enquire Today") : null;
 
   const address = findFirstLine(lines, (line) => /\b[A-Z]{1,2}\d[A-Z\d]?\s?\d[A-Z]{2}\b/i.test(line));
   const websiteUrl = findFirstLine(lines, (line) => /^www\.|^https?:\/\//i.test(line));
@@ -324,7 +309,6 @@ export function parseLiveClubPageHtml(
 
   return {
     sourceUrl,
-    venueName,
     address,
     websiteUrl,
     websiteHref: null,
@@ -366,7 +350,9 @@ export async function fetchLiveClubPage(
 
   const html = await response.text();
   const page = parseLiveClubPageHtml(html, club, sourceUrl);
-  const imageUrls = extractImageUrls(html, club, baseSiteUrl);
+  const imageUrls = extractImageUrls(html, club, baseSiteUrl)
+    .map((imageUrl) => stripLegacyImageUrl(imageUrl, { baseSiteUrl }))
+    .filter((imageUrl): imageUrl is string => Boolean(imageUrl));
   const websiteHref =
     extractHrefByText(html, /meeting-and-events|events/i, baseSiteUrl) ??
     (page.websiteUrl ? `https://${page.websiteUrl.replace(/^https?:\/\//, "")}` : null);
@@ -378,17 +364,13 @@ export async function fetchLiveClubPage(
     tourBookingHref: extractHrefByText(html, /Book Your Stadium Tour/i, baseSiteUrl),
     imageUrls,
     heroImageUrl: imageUrls[0] ?? null,
-    christmasImageUrl: extractFirstImageFromSection(
-      html,
-      "Christmas at",
-      ["Play on the Pitch", "Stadium Tours", "Key Information"],
-      baseSiteUrl
+    christmasImageUrl: stripLegacyImageUrl(
+      extractFirstImageFromSection(html, "Christmas at", ["Play on the Pitch", "Stadium Tours", "Key Information"], baseSiteUrl),
+      { baseSiteUrl }
     ),
-    playOnPitchImageUrl: extractFirstImageFromSection(
-      html,
-      "Play on the Pitch",
-      ["Stadium Tours", "Key Information", "Awards"],
-      baseSiteUrl
+    playOnPitchImageUrl: stripLegacyImageUrl(
+      extractFirstImageFromSection(html, "Play on the Pitch", ["Stadium Tours", "Key Information", "Awards"], baseSiteUrl),
+      { baseSiteUrl }
     )
   };
 }
