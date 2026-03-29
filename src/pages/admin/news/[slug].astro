@@ -101,6 +101,25 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
                     </button>
                     <p class="admin-inline-status" data-upload-status="cover_image_url" aria-live="polite"></p>
                   </div>
+                  <div class="admin-media-library full-width">
+                    <button class="button button-secondary button-compact" type="button" data-library-button="cover_image_url">
+                      Choose from Media Library
+                    </button>
+                    <p class="admin-inline-status" data-library-status="cover_image_url" aria-live="polite"></p>
+                    <div class="admin-media-library-panel" data-library-panel="cover_image_url" hidden>
+                      <div class="admin-media-library-panel-head">
+                        <label class="admin-media-library-search-field">
+                          <span>Filter loaded images</span>
+                          <input type="search" data-library-search="cover_image_url" placeholder="Search by filename or path" />
+                        </label>
+                        <p class="admin-media-library-meta" data-library-meta="cover_image_url"></p>
+                      </div>
+                      <div class="admin-media-library-list" data-library-list="cover_image_url"></div>
+                      <button class="button button-secondary button-compact admin-media-library-load-more" type="button" data-library-load-more="cover_image_url" hidden>
+                        Load more images
+                      </button>
+                    </div>
+                  </div>
 
                   <label class="full-width">
                     Article body *
@@ -160,6 +179,25 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
                       <p class="admin-media-advice full-width" data-image-advice="seo_og_image">
                         Add an owned image URL or a local /assets/... path.
                       </p>
+                      <div class="admin-media-library full-width">
+                        <button class="button button-secondary button-compact" type="button" data-library-button="seo_og_image">
+                          Choose from Media Library
+                        </button>
+                        <p class="admin-inline-status" data-library-status="seo_og_image" aria-live="polite"></p>
+                        <div class="admin-media-library-panel" data-library-panel="seo_og_image" hidden>
+                          <div class="admin-media-library-panel-head">
+                            <label class="admin-media-library-search-field">
+                              <span>Filter loaded images</span>
+                              <input type="search" data-library-search="seo_og_image" placeholder="Search by filename or path" />
+                            </label>
+                            <p class="admin-media-library-meta" data-library-meta="seo_og_image"></p>
+                          </div>
+                          <div class="admin-media-library-list" data-library-list="seo_og_image"></div>
+                          <button class="button button-secondary button-compact admin-media-library-load-more" type="button" data-library-load-more="seo_og_image" hidden>
+                            Load more images
+                          </button>
+                        </div>
+                      </div>
 
                       <label class="full-width">
                         Canonical URL
@@ -199,7 +237,7 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
 
   <script>
     import { signOutAdminBrowserSession, verifyAdminBrowserSession } from "../../../lib/admin-browser-auth";
-    import { uploadAdminMediaFile } from "../../../lib/admin-media-browser";
+    import { uploadAdminMediaFile, wireAdminMediaLibraryPicker } from "../../../lib/admin-media-browser";
     import { assessImageUrl } from "../../../lib/media";
     import { buildNewsBodyText, normaliseNewsBody, normaliseNewsSeo, slugifyNewsPostTitle } from "../../../lib/news-posts";
     import { getBrowserSupabase } from "../../../lib/supabase-browser";
@@ -227,6 +265,7 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
     const publishStatusNote = document.querySelector("[data-publish-status-note]");
     let currentSlug = slug;
     let currentPublished = false;
+    const mediaLibraryCache = new Map();
 
     const setState = (state) => {
       loading.hidden = state !== "loading";
@@ -286,6 +325,35 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
 
       element.textContent = message;
       element.classList.toggle("is-error", isError);
+    };
+
+    const setLibraryStatus = (fieldName, message, isError = false) => {
+      const element = document.querySelector(`[data-library-status="${fieldName}"]`);
+
+      if (!element) {
+        return;
+      }
+
+      element.textContent = message;
+      element.classList.toggle("is-error", isError);
+    };
+
+    const getMediaLibraryTarget = () => {
+      const title = String(editorForm?.elements.namedItem("title")?.value ?? "").trim();
+      const rawSlug = String(editorForm?.elements.namedItem("slug")?.value ?? "").trim();
+      const publishDate = String(editorForm?.elements.namedItem("published_at")?.value ?? "").trim();
+
+      return {
+        kind: "news",
+        slug: slugifyNewsPostTitle(rawSlug || title || currentSlug || "draft-article"),
+        publishedAt: publishDate || null,
+        slot: "cover"
+      };
+    };
+
+    const getMediaLibraryCacheKey = () => {
+      const target = getMediaLibraryTarget();
+      return `${target.kind}:${target.slug}:${target.publishedAt ?? "drafts"}`;
     };
 
     const setPublishedUi = (published, slugValue) => {
@@ -533,6 +601,7 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
 
           assignField(fieldName, uploaded.url);
           renderImageAdvice(fieldName, uploaded.url);
+          mediaLibraryCache.delete(getMediaLibraryCacheKey());
           setUploadStatus(fieldName, "Image uploaded.");
           input.value = "";
         } catch (error) {
@@ -540,6 +609,22 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
         } finally {
           button.disabled = false;
         }
+      });
+    };
+
+    const wireMediaLibraryPicker = (fieldName) => {
+      wireAdminMediaLibraryPicker({
+        cache: mediaLibraryCache,
+        fieldName,
+        getCacheKey: () => getMediaLibraryCacheKey(),
+        getCurrentValue: () => editorForm?.elements.namedItem(fieldName)?.value ?? "",
+        getTarget: () => getMediaLibraryTarget(),
+        onSelect: (item) => {
+          assignField(fieldName, item.url);
+          renderImageAdvice(fieldName, item.url);
+        },
+        setStatus: (message, isError = false) => setLibraryStatus(fieldName, message, isError),
+        supabase
       });
     };
 
@@ -570,6 +655,8 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
         field?.addEventListener("input", () => renderImageAdvice(fieldName, field.value));
       });
       wireMediaUpload("cover_image_url");
+      wireMediaLibraryPicker("cover_image_url");
+      wireMediaLibraryPicker("seo_og_image");
       signOutButton?.addEventListener("click", async () => {
         await signOutAdminBrowserSession(supabase);
         redirectToLogin();

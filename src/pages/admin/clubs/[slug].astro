@@ -5,7 +5,7 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
 <BaseLayout title="Edit Club Page" description="Manage club page content and publishing." chrome="admin">
   <script>
     import { signOutAdminBrowserSession, verifyAdminBrowserSession } from "../../../lib/admin-browser-auth";
-    import { uploadAdminMediaFile } from "../../../lib/admin-media-browser";
+    import { uploadAdminMediaFile, wireAdminMediaLibraryPicker } from "../../../lib/admin-media-browser";
     import { assessImageUrl } from "../../../lib/media";
     import { slugifyClubName } from "../../../lib/club-slugs";
     import { getBrowserSupabase } from "../../../lib/supabase-browser";
@@ -41,6 +41,12 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
       const publishStatusNote = document.querySelector("[data-publish-status-note]");
 
       const imageFields = ["crest_url", "hero_image_url", "christmas_image_url", "play_on_pitch_image_url"];
+      const imageSlots = {
+        crest_url: "crest",
+        hero_image_url: "hero",
+        christmas_image_url: "christmas",
+        play_on_pitch_image_url: "play-on-pitch"
+      };
       const editorFieldNames = [
         "club_name", "club_size", "summary", "address", "latitude", "longitude", "website_url", "website_href",
         "tour_booking_href", "crest_url", "hero_image_url", "christmas_image_url", "play_on_pitch_image_url",
@@ -66,6 +72,7 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
 
       let currentSlug = initialSlug;
       let currentRecord = null;
+      const mediaLibraryCache = new Map();
 
       const setState = (state) => {
         loading.hidden = state !== "loading";
@@ -238,6 +245,33 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
 
         element.textContent = message;
         element.classList.toggle("is-error", isError);
+      };
+
+      const setLibraryStatus = (name, message, isError = false) => {
+        const element = document.querySelector(`[data-library-status="${name}"]`);
+
+        if (!element) {
+          return;
+        }
+
+        element.textContent = message;
+        element.classList.toggle("is-error", isError);
+      };
+
+      const getMediaLibraryTarget = (fieldName) => {
+        const clubName = asNullableString(editorForm?.elements.namedItem("club_name")?.value);
+        const clubSlug = currentSlug || slugifyClubName(clubName || initialSlug || "club");
+
+        return {
+          kind: "club",
+          clubSlug,
+          slot: imageSlots[fieldName] ?? "hero"
+        };
+      };
+
+      const getMediaLibraryCacheKey = (fieldName) => {
+        const target = getMediaLibraryTarget(fieldName);
+        return `${target.kind}:${target.clubSlug}`;
       };
 
       const createKeyFactRow = (fact = { label: "", value: "" }) => {
@@ -502,13 +536,6 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
       };
 
       const wireImageUploads = () => {
-        const slots = {
-          crest_url: "crest",
-          hero_image_url: "hero",
-          christmas_image_url: "christmas",
-          play_on_pitch_image_url: "play-on-pitch"
-        };
-
         imageFields.forEach((fieldName) => {
           const input = document.querySelector(`[data-upload-input="${fieldName}"]`);
           const button = document.querySelector(`[data-upload-button="${fieldName}"]`);
@@ -537,13 +564,14 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
                 target: {
                   kind: "club",
                   clubSlug,
-                  slot: slots[fieldName]
+                  slot: imageSlots[fieldName]
                 }
               }, supabase);
 
               assignField(fieldName, uploaded.url);
               renderImagePreview(fieldName, uploaded.url);
               renderImageAdvice(fieldName, uploaded.url);
+              mediaLibraryCache.delete(getMediaLibraryCacheKey(fieldName));
               setUploadStatus(fieldName, "Image uploaded.");
               input.value = "";
             } catch (error) {
@@ -551,6 +579,25 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
             } finally {
               button.disabled = false;
             }
+          });
+        });
+      };
+
+      const wireMediaLibraryPickers = () => {
+        imageFields.forEach((fieldName) => {
+          wireAdminMediaLibraryPicker({
+            cache: mediaLibraryCache,
+            fieldName,
+            getCacheKey: () => getMediaLibraryCacheKey(fieldName),
+            getCurrentValue: () => editorForm?.elements.namedItem(fieldName)?.value ?? "",
+            getTarget: () => getMediaLibraryTarget(fieldName),
+            onSelect: (item) => {
+              assignField(fieldName, item.url);
+              renderImagePreview(fieldName, item.url);
+              renderImageAdvice(fieldName, item.url);
+            },
+            setStatus: (message, isError = false) => setLibraryStatus(fieldName, message, isError),
+            supabase
           });
         });
       };
@@ -584,6 +631,7 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
 
         wireImagePreviews();
         wireImageUploads();
+        wireMediaLibraryPickers();
         addKeyFactButton?.addEventListener("click", () => keyFactsList?.appendChild(createKeyFactRow()));
         addSocialLinkButton?.addEventListener("click", () => socialLinksList?.appendChild(createSocialLinkRow()));
         addSpaceButton?.addEventListener("click", () => spacesList?.appendChild(createContentBlockRow("space")));
@@ -756,6 +804,25 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
                           </button>
                           <p class="admin-inline-status" data-upload-status="crest_url" aria-live="polite"></p>
                         </div>
+                        <div class="admin-media-library">
+                          <button class="button button-secondary button-compact" type="button" data-library-button="crest_url">
+                            Choose from Media Library
+                          </button>
+                          <p class="admin-inline-status" data-library-status="crest_url" aria-live="polite"></p>
+                          <div class="admin-media-library-panel" data-library-panel="crest_url" hidden>
+                            <div class="admin-media-library-panel-head">
+                              <label class="admin-media-library-search-field">
+                                <span>Filter loaded images</span>
+                                <input type="search" data-library-search="crest_url" placeholder="Search by filename or path" />
+                              </label>
+                              <p class="admin-media-library-meta" data-library-meta="crest_url"></p>
+                            </div>
+                            <div class="admin-media-library-list" data-library-list="crest_url"></div>
+                            <button class="button button-secondary button-compact admin-media-library-load-more" type="button" data-library-load-more="crest_url" hidden>
+                              Load more images
+                            </button>
+                          </div>
+                        </div>
                       </div>
 
                       <div class="admin-media-card">
@@ -774,6 +841,25 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
                             Upload to Media Library
                           </button>
                           <p class="admin-inline-status" data-upload-status="hero_image_url" aria-live="polite"></p>
+                        </div>
+                        <div class="admin-media-library">
+                          <button class="button button-secondary button-compact" type="button" data-library-button="hero_image_url">
+                            Choose from Media Library
+                          </button>
+                          <p class="admin-inline-status" data-library-status="hero_image_url" aria-live="polite"></p>
+                          <div class="admin-media-library-panel" data-library-panel="hero_image_url" hidden>
+                            <div class="admin-media-library-panel-head">
+                              <label class="admin-media-library-search-field">
+                                <span>Filter loaded images</span>
+                                <input type="search" data-library-search="hero_image_url" placeholder="Search by filename or path" />
+                              </label>
+                              <p class="admin-media-library-meta" data-library-meta="hero_image_url"></p>
+                            </div>
+                            <div class="admin-media-library-list" data-library-list="hero_image_url"></div>
+                            <button class="button button-secondary button-compact admin-media-library-load-more" type="button" data-library-load-more="hero_image_url" hidden>
+                              Load more images
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -965,6 +1051,25 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
                           </button>
                           <p class="admin-inline-status" data-upload-status="christmas_image_url" aria-live="polite"></p>
                         </div>
+                        <div class="admin-media-library">
+                          <button class="button button-secondary button-compact" type="button" data-library-button="christmas_image_url">
+                            Choose from Media Library
+                          </button>
+                          <p class="admin-inline-status" data-library-status="christmas_image_url" aria-live="polite"></p>
+                          <div class="admin-media-library-panel" data-library-panel="christmas_image_url" hidden>
+                            <div class="admin-media-library-panel-head">
+                              <label class="admin-media-library-search-field">
+                                <span>Filter loaded images</span>
+                                <input type="search" data-library-search="christmas_image_url" placeholder="Search by filename or path" />
+                              </label>
+                              <p class="admin-media-library-meta" data-library-meta="christmas_image_url"></p>
+                            </div>
+                            <div class="admin-media-library-list" data-library-list="christmas_image_url"></div>
+                            <button class="button button-secondary button-compact admin-media-library-load-more" type="button" data-library-load-more="christmas_image_url" hidden>
+                              Load more images
+                            </button>
+                          </div>
+                        </div>
                       </div>
 
                       <div class="admin-media-card">
@@ -983,6 +1088,25 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
                             Upload to Media Library
                           </button>
                           <p class="admin-inline-status" data-upload-status="play_on_pitch_image_url" aria-live="polite"></p>
+                        </div>
+                        <div class="admin-media-library">
+                          <button class="button button-secondary button-compact" type="button" data-library-button="play_on_pitch_image_url">
+                            Choose from Media Library
+                          </button>
+                          <p class="admin-inline-status" data-library-status="play_on_pitch_image_url" aria-live="polite"></p>
+                          <div class="admin-media-library-panel" data-library-panel="play_on_pitch_image_url" hidden>
+                            <div class="admin-media-library-panel-head">
+                              <label class="admin-media-library-search-field">
+                                <span>Filter loaded images</span>
+                                <input type="search" data-library-search="play_on_pitch_image_url" placeholder="Search by filename or path" />
+                              </label>
+                              <p class="admin-media-library-meta" data-library-meta="play_on_pitch_image_url"></p>
+                            </div>
+                            <div class="admin-media-library-list" data-library-list="play_on_pitch_image_url"></div>
+                            <button class="button button-secondary button-compact admin-media-library-load-more" type="button" data-library-load-more="play_on_pitch_image_url" hidden>
+                              Load more images
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>

@@ -416,10 +416,13 @@ const venueFinderData = venues.map((venue) => ({
       return match ? Number(match[0]) : null;
     };
 
-    const getBooleanFactValue = (venue, label) => {
-      const fact = venue.planningFacts?.find(
+    const getPlanningFact = (venue, label) =>
+      venue.planningFacts?.find(
         (item) => typeof item?.label === "string" && item.label.trim().toLowerCase() === label.toLowerCase()
-      );
+      ) ?? null;
+
+    const getBooleanFactValue = (venue, label) => {
+      const fact = getPlanningFact(venue, label);
 
       if (!fact || typeof fact.value !== "string") {
         return null;
@@ -439,11 +442,109 @@ const venueFinderData = venues.map((venue) => ({
     };
 
     const getFactDisplayValue = (venue, label) => {
-      const fact = venue.planningFacts?.find(
-        (item) => typeof item?.label === "string" && item.label.trim().toLowerCase() === label.toLowerCase()
-      );
+      const fact = getPlanningFact(venue, label);
 
       return fact?.value ?? "—";
+    };
+
+    const escapeHtml = (value) =>
+      String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+
+    const truncateText = (value, maxLength = 120) => {
+      const normalized = String(value ?? "").replace(/\s+/g, " ").trim();
+
+      if (!normalized || normalized.length <= maxLength) {
+        return normalized;
+      }
+
+      return `${normalized.slice(0, Math.max(maxLength - 1, 0)).trimEnd()}…`;
+    };
+
+    const truncateTooltipText = (value, maxLength = 120) => {
+      const normalized = String(value ?? "").replace(/\s+/g, " ").trim();
+
+      if (!normalized || normalized.length <= maxLength) {
+        return normalized;
+      }
+
+      return `${normalized.slice(0, Math.max(maxLength - 3, 0)).trimEnd()}...`;
+    };
+
+    const getVenueTooltipFact = (venue) => {
+      const labels = [
+        "Event Spaces",
+        "Boxes",
+        "Total SQM Exhibition Space",
+        "Distance To Nearest Hotel",
+        "Events On Pitch"
+      ];
+
+      for (const label of labels) {
+        const fact = getPlanningFact(venue, label);
+        if (fact?.value) {
+          return fact;
+        }
+      }
+
+      if (Array.isArray(venue.eventTypes) && venue.eventTypes.length) {
+        return {
+          label: "Best for",
+          value: venue.eventTypes.slice(0, 2).join(" / ")
+        };
+      }
+
+      return null;
+    };
+
+    const getVenueTooltipCapacity = (venue) => {
+      const guestCapacity = getGuestCapacityForFilter(venue);
+
+      if (guestCapacity !== null) {
+        return `${guestCapacity.toLocaleString("en-GB")} guests`;
+      }
+
+      const fallbackCapacity = String(venue.guestCapacityLabel ?? "").trim();
+
+      if (fallbackCapacity && fallbackCapacity.toLowerCase() !== "capacity on request") {
+        return fallbackCapacity;
+      }
+
+      return "Details on request";
+    };
+
+    const buildVenueTooltipContent = (venue, index) => {
+      const location = [venue.city, venue.region].filter(Boolean).join(", ");
+      const capacity = getVenueTooltipCapacity(venue);
+      const summary = truncateTooltipText(venue.summary, 118);
+      const detailFact = getVenueTooltipFact(venue);
+
+      return `
+        <div class="venue-map-tooltip-card">
+          <p class="venue-map-tooltip-kicker">Venue ${index + 1}</p>
+          <h4>${escapeHtml(venue.name)}</h4>
+          <p class="venue-map-tooltip-location">${escapeHtml(location)}</p>
+          ${summary ? `<p class="venue-map-tooltip-summary">${escapeHtml(summary)}</p>` : ""}
+          <dl class="venue-map-tooltip-facts">
+            <div>
+              <dt>Capacity</dt>
+              <dd>${escapeHtml(capacity)}</dd>
+            </div>
+            ${
+              detailFact
+                ? `<div>
+                    <dt>${escapeHtml(detailFact.label)}</dt>
+                    <dd>${escapeHtml(detailFact.value)}</dd>
+                  </div>`
+                : ""
+            }
+          </dl>
+        </div>
+      `;
     };
 
     const getAdvancedFilters = () => ({
@@ -993,7 +1094,20 @@ const venueFinderData = venues.map((venue) => ({
       mapMatches.forEach((match, index) => {
         const marker = L.marker([match.point.lat, match.point.lng], { icon: createVenueIcon(L, index) })
           .addTo(venueMap)
-          .bindPopup(`${index + 1}. ${match.name}<br/>${match.city}`);
+          .bindTooltip(buildVenueTooltipContent(match, index), {
+            direction: "top",
+            offset: [0, -18],
+            opacity: 1,
+            className: "venue-map-tooltip"
+          });
+
+        marker.on("focus", () => {
+          marker.openTooltip();
+        });
+
+        marker.on("blur", () => {
+          marker.closeTooltip();
+        });
 
         marker.on("click", () => {
           focusVenueCard(match.slug);

@@ -24,6 +24,16 @@ type ImageKitUploadResponse = {
   help?: unknown;
 };
 
+type ImageKitListFileResponse = {
+  fileId?: unknown;
+  name?: unknown;
+  url?: unknown;
+  thumbnail?: unknown;
+  thumbnailUrl?: unknown;
+  filePath?: unknown;
+  fileType?: unknown;
+};
+
 export type MediaUploadTarget =
   | {
       kind: "club";
@@ -41,6 +51,22 @@ export type MediaUploadTarget =
       slug: string;
       type: "programme" | "page" | "category";
     };
+
+export type MediaLibraryItem = {
+  fileId: string;
+  name: string;
+  url: string;
+  thumbnailUrl: string | null;
+  filePath: string | null;
+};
+
+export type MediaLibraryListResult = {
+  items: MediaLibraryItem[];
+  hasMore: boolean;
+  limit: number;
+  nextSkip: number | null;
+  skip: number;
+};
 
 function getPublicMediaBaseUrl(): string | null {
   return typeof import.meta.env.PUBLIC_MEDIA_BASE_URL === "string" && import.meta.env.PUBLIC_MEDIA_BASE_URL.trim()
@@ -83,8 +109,30 @@ function getImageKitErrorMessage(payload: ImageKitUploadResponse | null): string
   return null;
 }
 
+function getImageKitAuthHeader(): string | null {
+  const privateKey = getImageKitPrivateKey();
+  return privateKey ? `Basic ${btoa(`${privateKey}:`)}` : null;
+}
+
 export function isMediaUploadConfigured(bucket?: MediaBucketLike | null): boolean {
   return Boolean(getImageKitPrivateKey() || bucket);
+}
+
+export function buildMediaFolderPath(target: MediaUploadTarget): string {
+  const objectKey = buildMediaObjectKey(
+    target.kind === "club"
+      ? { ...target, slot: "hero" }
+      : target.kind === "news"
+        ? { ...target, slot: "cover" }
+        : target,
+    "placeholder.jpg"
+  );
+
+  return `/${objectKey.split("/").slice(0, -1).join("/")}`;
+}
+
+export function isImageKitConfigured(): boolean {
+  return Boolean(getImageKitPrivateKey() && getImageKitUrlEndpoint());
 }
 
 export function buildMediaObjectKey(target: MediaUploadTarget, fileName: string): string {
@@ -216,5 +264,76 @@ export async function uploadMediaFile(options: {
   return {
     objectKey,
     url
+  };
+}
+
+export async function listMediaLibraryItems(options: {
+  target: MediaUploadTarget;
+  limit?: number;
+  skip?: number;
+}): Promise<MediaLibraryListResult> {
+  const authHeader = getImageKitAuthHeader();
+
+  if (!authHeader) {
+    throw new Error("ImageKit is not configured.");
+  }
+
+  const limit = options.limit && options.limit > 0 ? Math.min(options.limit, 48) : 24;
+  const skip = options.skip && options.skip >= 0 ? options.skip : 0;
+
+  const requestUrl = new URL("https://api.imagekit.io/v1/files");
+  requestUrl.searchParams.set("type", "file");
+  requestUrl.searchParams.set("fileType", "image");
+  requestUrl.searchParams.set("path", buildMediaFolderPath(options.target));
+  requestUrl.searchParams.set("limit", String(limit + 1));
+  requestUrl.searchParams.set("skip", String(skip));
+
+  const response = await fetch(requestUrl, {
+    headers: {
+      authorization: authHeader,
+      accept: "application/json"
+    }
+  });
+
+  const payload = await response.json().catch(() => null) as ImageKitListFileResponse[] | null;
+
+  if (!response.ok) {
+    throw new Error("Unable to load media library items from ImageKit.");
+  }
+
+  const files = Array.isArray(payload) ? payload : [];
+
+  const items = files
+    .filter((item) => {
+      return (
+        typeof item?.fileId === "string" &&
+        typeof item?.name === "string" &&
+        typeof item?.url === "string" &&
+        item.name.trim() &&
+        item.url.trim()
+      );
+    })
+    .map((item) => ({
+      fileId: item.fileId as string,
+      name: (item.name as string).trim(),
+      url: (item.url as string).trim(),
+      thumbnailUrl:
+        typeof item.thumbnailUrl === "string" && item.thumbnailUrl.trim()
+          ? item.thumbnailUrl.trim()
+          : typeof item.thumbnail === "string" && item.thumbnail.trim()
+            ? item.thumbnail.trim()
+            : null,
+      filePath: typeof item.filePath === "string" && item.filePath.trim() ? item.filePath.trim() : null
+    }));
+
+  const hasMore = files.length > limit;
+  const visibleItems = items.slice(0, limit);
+
+  return {
+    items: visibleItems,
+    hasMore,
+    limit,
+    nextSkip: hasMore ? skip + visibleItems.length : null,
+    skip
   };
 }
